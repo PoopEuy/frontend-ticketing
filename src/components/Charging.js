@@ -384,7 +384,9 @@ function FrameList() {
             const element = (
               <div>
                 <br />
-                <h1 style={{ textAlign: "center", fontSize: "30px" }}>HASIL</h1>
+                <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+                  RESULT
+                </h1>
                 <h2
                   style={{
                     textAlign: "center",
