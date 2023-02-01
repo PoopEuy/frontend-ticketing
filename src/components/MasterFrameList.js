@@ -17,14 +17,14 @@ const MasterFrameList = () => {
     setMasterFrames(response.data);
   };
 
-  const deleteFrame = async (id) => {
-    try {
-      await instanceBackEnd.delete(`deleteMframe/${id}`);
-      getMasterFrames();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const deleteFrame = async (id) => {
+  //   try {
+  //     await instanceBackEnd.delete(`deleteMframe/${id}`);
+  //     getMasterFrames();
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   return (
     <div className="columns mt-5 is-centered">
@@ -41,8 +41,9 @@ const MasterFrameList = () => {
               <th>Serial Frame</th>
               {/* <th>Ip</th> */}
               <th>Status Test</th>
-              <th>CreatedAt</th>
-              <th>Actions</th>
+              <th>Result Test</th>
+              <th>Test Time</th>
+              {/* <th>Actions</th> */}
             </tr>
           </thead>
           <tbody>
@@ -53,8 +54,9 @@ const MasterFrameList = () => {
                 <td>{masterFrame.frame_sn}</td>
                 {/* <td>{masterFrame.ip_adrs}</td> */}
                 <td>{String(masterFrame.status_test)}</td>
+                <td>{String(masterFrame.result)}</td>
                 <td>{masterFrame.createdAt}</td>
-                <td>
+                {/* <td>
                   <Link
                     to={`edit/${masterFrame.id}`}
                     className="button is-small is-info"
@@ -67,7 +69,7 @@ const MasterFrameList = () => {
                   >
                     Delete
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
