@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 
 var baris = 0;
 var check_selesai = 0;
+var count_restart = 0;
 var addressing_loop;
 var set_address_stats;
 var num_of_device;
@@ -36,6 +37,7 @@ function FrameList() {
     if (event.key === "Enter") {
       // document.getElementById("addFrame").click();
       baris = baris + 1;
+
       getMframByFrame();
     }
   };
@@ -53,12 +55,49 @@ function FrameList() {
       console.log(data, "data");
       console.log(status, "nilai status");
       if (data === null) {
-        await addFrame();
+        // await addFrame();
+        if (baris === 1) {
+          await restartCMS();
+        } else {
+          await addFrame();
+        }
       } else {
         alert("FRAME SUDAH TERDAFTAR!!");
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const restartCMS = async () => {
+    try {
+      const payload = {
+        bid: 255,
+        restart: 1,
+      };
+
+      const res = await instanceBackEnd.post("restartCMS", payload);
+      const restart_status = await res.data.data;
+      const data_status = restart_status.status;
+      if (data_status === 1) {
+        console.log("lanjut getframe data");
+
+        setTimeout(
+          await function () {
+            addFrame();
+          },
+          1000
+        );
+      } else {
+        count_restart = count_restart + 1;
+        if (count_restart > 3) {
+          alert("GAGAL RESTART CMS, HARAP PERIKSA KONEKSI ANDA");
+        } else {
+          restartCMS();
+        }
+      }
+    } catch (error) {
+      alert("GAGAL RESTART CMS, HARAP PERIKSA KONEKSI ANDA 2");
     }
   };
 
@@ -154,17 +193,21 @@ function FrameList() {
     console.log(`device_address_list = ${device_address_list}`);
     addressing_loop = addressing_loop + 1;
 
-    if (set_status === 0 && addressing_loop < 30) {
+    if (set_status === 0 && addressing_loop < 10) {
       console.log("LOOP = " + addressing_loop);
       setTimeout(() => {
         getAddressing();
       }, 1000);
-    } else if (set_status === 1 && num_of_device === 0) {
+    } else if (
+      set_status === 1 &&
+      num_of_device === 0 &&
+      addressing_loop < 10
+    ) {
       setTimeout(() => {
         console.log("LOOP = " + addressing_loop);
         getAddressing();
       }, 1000);
-    } else if (set_status === 1 && addressing_loop < 31 && num_of_device > 0) {
+    } else if (set_status === 1 && addressing_loop < 11 && num_of_device > 0) {
       console.log("STOP LOOP go to nextstep, Loop =" + addressing_loop);
       document.getElementById("kode_frame").value = "";
       element_frame.removeAttribute("disabled");
