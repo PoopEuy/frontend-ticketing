@@ -36,7 +36,6 @@ function FrameList() {
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       // document.getElementById("addFrame").click();
-      baris = baris + 1;
 
       getMframByFrame();
     }
@@ -56,13 +55,22 @@ function FrameList() {
       console.log(status, "nilai status");
       if (data === null) {
         // await addFrame();
-        if (baris === 1) {
+        if (baris === 0) {
           await restartCMS();
         } else {
           await addFrame();
         }
       } else {
-        alert("FRAME SUDAH TERDAFTAR!!");
+        alert("FRAME SUDAH TERDAFTAR, HARAP SCAN KODE FRAME YANG BERBEDA");
+
+        //   confirm("FRAME SUDAH TERDAFTAR, HARAP SCAN KODE FRAME YANG BERBEDA")
+        // ) {
+        //   // Save it!
+        //   console.log("ok");
+        // } else {
+        //   // Do nothing!
+        //   console.log("cancel");
+        // }
       }
     } catch (error) {
       console.log(error);
@@ -92,18 +100,21 @@ function FrameList() {
         count_restart = count_restart + 1;
         if (count_restart > 3) {
           alert("GAGAL RESTART CMS, HARAP PERIKSA KONEKSI ANDA");
+          window.location.reload();
         } else {
           restartCMS();
         }
       }
     } catch (error) {
-      alert("GAGAL RESTART CMS, HARAP PERIKSA KONEKSI ANDA 2");
+      alert("GAGAL RESTART CMS, HARAP PERIKSA KONEKSI ANDA");
+      window.location.reload();
     }
   };
 
   async function addFrame() {
+    baris = baris + 1;
+    console.log("addframe");
     console.log(baris, "baris atas");
-
     console.log(inputdata, " input data  ");
     console.log(baris, "baris");
 
@@ -143,7 +154,7 @@ function FrameList() {
         500
       );
     } else {
-      alert("FRAME SUDAH DI SCAN!!");
+      alert("FRAME SUDAH DI SCAN, HARAP SCAN FRAME YANG BERBEDA");
     }
   }
 
@@ -167,15 +178,21 @@ function FrameList() {
       const data = await res.data;
       set_address_stats = data.data.status;
 
-      console.log(`set_address_stats = ${set_address_stats}`);
+      console.log(`set_address_statgs = ${set_address_stats}`);
 
       if (set_address_stats === 1) {
-        getAddressing();
+        setTimeout(() => {
+          console.log("LOOP = " + addressing_loop);
+          getAddressing();
+        }, 1000);
       } else {
-        alert("ADDRESSING FAILED!!!");
+        alert("ADDRESSING GAGAL, HARAP COBA KEMBALI");
+        window.location.reload();
       }
     } catch (error) {
       console.log(error);
+      alert("ADDRESSING GAGAL, HARAP PERIKSA KONEKSI ANDA");
+      window.location.reload();
     }
   };
 
@@ -220,7 +237,10 @@ function FrameList() {
       );
       // setFrame();
     } else {
-      alert("Get ADDRESSING FAILED!!!");
+      alert(
+        "Get ADDRESSING GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA"
+      );
+      window.location.reload();
     }
   };
 
@@ -290,10 +310,10 @@ function FrameList() {
         console.log("sukses set frame");
         await createTableFrame(input_value);
       } else {
-        alert("GAGAL SET FRAME");
+        alert("SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA");
       }
     } catch (error) {
-      alert("FAILED setFrame!!");
+      alert("SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA");
     }
   };
 
@@ -311,10 +331,12 @@ function FrameList() {
         // UpdateMFrameStatus();
         await createTableFrame(input_value);
       } else {
-        alert("ERROR SET STATUS DATA COLLETION!!");
+        alert("FAILED SET STATUS DATA COLLETION!!");
+        window.location.reload();
       }
     } catch (error) {
-      alert("FAILED SET DATA COLLETION!!");
+      alert("ERROR SET DATA COLLETION!!");
+      window.location.reload();
     }
   };
 
@@ -335,7 +357,10 @@ function FrameList() {
       } else {
       }
     } catch (error) {
-      alert("FAILED CREATED DATA TABLE!!");
+      alert(
+        "ERROR CREATED DATA TABLE! MOHON PERIKSA KONEKSI RMS DAN PERANGKAT ANDA"
+      );
+      window.location.reload();
     }
   };
 
@@ -364,7 +389,7 @@ function FrameList() {
           10000
         );
       } else {
-        alert("CREATE MFRAME GAGAL");
+        alert("CREATE MFRAME GAGAL! HARAP COBA KEMBALI ");
       }
     } catch (error) {
       alert("FRAME SUDAH TERDAFTAR");
