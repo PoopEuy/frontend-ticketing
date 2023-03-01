@@ -50,7 +50,7 @@ function FrameList() {
       const res = await instanceBackEnd.post("getMframByFrame", payload);
       const data = await res.data.data;
       const status = await res.status;
-      //   console.log(data.data.kd_site);
+
       console.log(data, "data");
       console.log(status, "nilai status");
       if (data === null) {
@@ -114,9 +114,6 @@ function FrameList() {
   async function addFrame() {
     baris = baris + 1;
     console.log("addframe");
-    console.log(baris, "baris atas");
-    console.log(inputdata, " input data  ");
-    console.log(baris, "baris");
 
     if (baris === 1) {
       console.log("baris 1");
@@ -142,8 +139,6 @@ function FrameList() {
 
     if (isFound === false) {
       console.log("ARRAY PASS");
-      console.log(device_address_list[0], "lihat device_address_list array 0");
-      console.log(device_address_list[1], "lihat device_address_list array 1");
       await setInputarr([...inputarr, { kode_frame }]);
       // await check_jumlah_frame();
       console.log(inputarr, " objek store di array atas");
@@ -228,7 +223,7 @@ function FrameList() {
       console.log("STOP LOOP go to nextstep, Loop =" + addressing_loop);
       document.getElementById("kode_frame").value = "";
       element_frame.removeAttribute("disabled");
-      element_loading.style.display = "none";
+
       setTimeout(
         await function () {
           check_jumlah_frame();
@@ -245,9 +240,6 @@ function FrameList() {
   };
 
   async function check_jumlah_frame() {
-    console.log("baris = " + baris);
-    console.log("jumlah frame= " + num_of_device);
-
     document.getElementById("kode_frame").focus();
     if (baris === num_of_device) {
       console.log("Jumlah frame sesuai jumlah scan");
@@ -261,7 +253,6 @@ function FrameList() {
 
   async function save_frame() {
     element_frame.setAttribute("disabled", "");
-    loading_charging.style.display = "block";
 
     console.log(inputarr, " objek store di array ");
     const panjang_array = inputarr.length;
@@ -270,20 +261,16 @@ function FrameList() {
     for (let i = 0; i < inputarr.length; i++) {
       const input_value = inputarr[i];
       const input_bid = device_address_list[i];
-      console.log(input_value, "input_value");
 
       console.log("status_setFrame FOR1 = " + status_setFrame);
       if (i === 0) {
         console.log("set frame pertama");
         await setFrame(input_value, input_bid, i);
       } else if (i > 0 && status_setFrame === 1) {
-        console.log("set frame next");
         setTimeout(await setFrame(input_value, input_bid, i), 500);
       } else {
         console.log("status_setFrame FOR2 = " + status_setFrame);
       }
-      console.log(panjang_array, "panjang_array");
-      console.log(i, "<= ARRAY KE");
     }
   }
 
@@ -303,17 +290,25 @@ function FrameList() {
       console.log("status_setFrame = " + status_setFrame);
 
       if (status_setFrame === 1 && i === 0) {
-        await setDataCollection(input_value);
-
-        console.log("sukses set frame, masuk set data collection");
+        setTimeout(
+          await function () {
+            setDataCollection(input_value);
+            console.log("sukses set frame, masuk set data collection");
+          },
+          1000
+        );
       } else if (status_setFrame === 1) {
         console.log("sukses set frame");
         await createTableFrame(input_value);
       } else {
-        alert("SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA");
+        alert(
+          "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!"
+        );
       }
     } catch (error) {
-      alert("SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA");
+      alert(
+        "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!!"
+      );
     }
   };
 
@@ -374,19 +369,24 @@ function FrameList() {
 
       const res = await instanceBackEnd.post("createMframe", payload);
 
-      const data = await res.data;
+      // const data = await res.data;
       // const status = await res.status;
       const msg = await res.data.msg;
 
-      console.log(data);
-      console.log("msg = " + msg);
       if (msg === "Created") {
         console.log("Mframe Created");
+        // setTimeout(
+        //   await function () {
+        //     getStatusCharging(input_value);
+        //   },
+        //   10000
+        // );
+
         setTimeout(
           await function () {
-            getStatusCharging(input_value);
+            validateTime(input_value);
           },
-          10000
+          1000
         );
       } else {
         alert("CREATE MFRAME GAGAL! HARAP COBA KEMBALI ");
@@ -396,7 +396,315 @@ function FrameList() {
     }
   };
 
-  const getStatusCharging = async (input_value) => {
+  //validasi waktu
+  const validateTime = async (input_value) => {
+    console.log("masuk validate time");
+    try {
+      const res = await instanceBackEnd.get("validate-time");
+
+      const time_msg = await res.data.msg;
+      console.log("time message : " + time_msg);
+      // deleteFrame(input_value);
+      if (time_msg === "TIME_IS_OVER") {
+        deleteFrame(input_value);
+      } else {
+        console.log("Lanjut program");
+        checkBatteryVoltage(input_value);
+      }
+    } catch (error) {
+      alert("GAGAL VALIDASI WAKTU");
+    }
+  };
+
+  //delete mframe
+  const deleteFrame = async (input_value) => {
+    console.log("delete mframe");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("deletebyMframe", payload);
+
+      const delete_msg = await res.data.msg;
+      console.log("delete_msg : " + delete_msg);
+      if (delete_msg === "mframe_deleted") {
+        deleteFrameTable(input_value);
+      } else {
+        alert("GAGAL DELETE FRAME");
+      }
+    } catch (error) {
+      alert("GAGAL DELETE FRAME");
+    }
+  };
+
+  const deleteFrameTable = async (input_value) => {
+    console.log("delete mframe table");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("deleteTableFrame", payload);
+
+      const deletet_msg = await res.data.msg;
+      console.log("deletetable_msg : " + deletet_msg);
+      if (deletet_msg === "table_deleted") {
+        alert("GAGAL VALIDASI WAKTU, HARAP COBA KEMBALI BESOK");
+        window.location.reload();
+      } else {
+        alert("ERROR DELETE TABLE");
+      }
+    } catch (error) {
+      alert("GAGAL DELETE TABLE FRAME");
+    }
+  };
+
+  //check battery voltage
+  const checkBatteryVoltage = async (input_value) => {
+    console.log("check batt volt : ");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("check-battery-voltage", payload);
+      const batt_msg = await res.data.msg;
+      console.log("batt_msg : " + batt_msg);
+
+      if (batt_msg === "BATTERY_NOT_FULLY_CHARGED") {
+        console.log("TURN-ON recti");
+        powerOnRectifier(input_value);
+      } else {
+        alert("BATERAI SUDAH PENUH");
+        // window.location.reload();
+        // powerOnRectifier(input_value);
+      }
+    } catch (error) {
+      alert("GAGAL CHECK BATT VOLT");
+    }
+  };
+
+  //turn-on recti
+  const powerOnRectifier = async (input_value) => {
+    console.log("powerOnRectifier");
+    element_loading.style.display = "none";
+    loading_charging.style.display = "block";
+    try {
+      const res = await instanceBackEnd.get("power-module-rectifier/true");
+      const recpower_msg = await res.data.msg;
+      console.log("recpower_msg : " + recpower_msg);
+      if (recpower_msg === "POWER_MODULE_RECTIFIER_TURN_ON") {
+        getCms(input_value);
+      } else {
+        alert(recpower_msg);
+      }
+    } catch (error) {
+      alert("GAGAL TURN ON RECTI");
+    }
+  };
+
+  //getcms
+  const getCms = async (input_value) => {
+    console.log("masuk getCms  ");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("cms-data", payload);
+      const cms_msg = await res.data.msg;
+      console.log("cms_msg : " + cms_msg);
+      if (cms_msg === "DIFFERENT_VOLTAGE_CELL_OK") {
+        console.log("ambil rect data");
+        rectifierData(input_value);
+      } else if (cms_msg === "DIFFERENT_VOLTAGE_CELL_TOO_HIGH") {
+        console.log("stop recti");
+        alert("PERBEDAAN VOLTAGE TERLALU BESAR");
+        updateResultStatus(input_value);
+      } else {
+        getCms(input_value);
+      }
+    } catch (error) {
+      alert("GAGAL GET CMS");
+    }
+  };
+
+  //stop recti process (update status)
+  const updateResultStatus = async (input_value) => {
+    console.log("updateResultTest  ");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.put("update-result-status", payload);
+      const statusResult_msg = await res.data.msg;
+      console.log("statusResult_msg : " + statusResult_msg);
+      if (statusResult_msg === "UPDATE_RESULT_STATUS_SUCCESS") {
+        updateStatusTest(input_value);
+      } else {
+        alert("GAGAL UPDATE RESULT TEST !!!");
+      }
+    } catch (error) {
+      alert("GAGAL UPDATE RESULT TEST");
+    }
+  };
+
+  const updateStatusTest = async (input_value) => {
+    console.log("updateStatusTest  ");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.put("update-status-test", payload);
+      const statusTest_msg = await res.data.msg;
+      console.log("statusTest_msg : " + statusTest_msg);
+      if (statusTest_msg === "UPDATE_STATUS_TEST_SUCCESS") {
+        updateStatusChecking(input_value);
+      } else {
+        alert("GAGAL UPDATE STATUS TEST !!!");
+      }
+    } catch (error) {
+      alert("GAGAL UPDATE STATUS TEST");
+    }
+  };
+
+  const updateStatusChecking = async (input_value) => {
+    console.log("updateStatusChecking  ");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.put("update-status-checking", payload);
+      const statusCheck_msg = await res.data.msg;
+      console.log("statusCheck_msg : " + statusCheck_msg);
+      if (statusCheck_msg === "UPDATE_STATUS_CHECKING_SUCCESS") {
+        powerOffRectifier(input_value);
+      } else {
+        alert("GAGAL UPDATE CHECK TEST !!!");
+      }
+    } catch (error) {
+      alert("GAGAL UPDATE CHECK TEST");
+    }
+  };
+
+  //stop recti process (turnoff recti)
+  const powerOffRectifier = async (input_value) => {
+    console.log("powerOffRectifier");
+    try {
+      const res = await instanceBackEnd.get("power-module-rectifier/:false");
+      const recpowerOff_msg = await res.data.msg;
+      console.log("recpowerOff_msg : " + recpowerOff_msg);
+
+      if (recpowerOff_msg === "POWER_MODULE_RECTIFIER_TURN_OFF") {
+        setRectifierCurrent(input_value);
+      } else {
+      }
+    } catch (error) {
+      alert("GAGAL TURN OFF RECTI");
+    }
+  };
+
+  const setRectifierCurrent = async (input_value) => {
+    console.log("setRectifierCurrent");
+    try {
+      const payload = {
+        current: 40,
+      };
+      const res = await instanceBackEnd.post("set-rectifier-current", payload);
+      const rec_status = await res.data.status;
+      const rec_code = await res.data.code;
+      console.log("rec_status : " + rec_status);
+
+      if (rec_code === 200 && rec_status === true) {
+        setRectifierVoltage(input_value);
+      } else {
+      }
+    } catch (error) {
+      alert("GAGAL SET CURRENT RECTI");
+    }
+  };
+
+  const setRectifierVoltage = async (input_value) => {
+    console.log("setRectifierVoltage");
+    try {
+      const payload = {
+        maxVoltage: 3600,
+        totalCell: 32,
+      };
+      const res = await instanceBackEnd.post("set-rectifier-voltage", payload);
+      const recVolt_status = await res.data.status;
+      const recVolt_code = await res.data.code;
+      console.log("recVolt_status : " + recVolt_status);
+
+      if (recVolt_code === 200 && recVolt_status === true) {
+        alert("PROGRAM DIHENTIKAN");
+        endProgram(input_value);
+        // window.location.reload();
+      } else {
+      }
+    } catch (error) {
+      alert("GAGAL SET RECTI VOLTAGE");
+    }
+  };
+
+  //get rect data
+  const rectifierData = async (input_value) => {
+    console.log("powerOffRectifier");
+    try {
+      const res = await instanceBackEnd.get("rectifier-data");
+      const recData_msg = await res.data.msg;
+      console.log("recData_msg : " + recData_msg);
+      if (recData_msg === "INSERT_RECTIFIER_DATA_SUCCESS") {
+        checkBatt(input_value);
+      } else {
+        alert("GAGAL GET RECTI DATA !!!");
+      }
+    } catch (error) {
+      alert("GAGAL GET RECTI DATA");
+    }
+  };
+
+  const checkBatt = async (input_value) => {
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("check-battery-voltage", payload);
+      const batt_msg = await res.data.msg;
+      console.log("batt_msg : " + batt_msg);
+
+      if (batt_msg === "BATTERY_NOT_FULLY_CHARGED") {
+        console.log("batterai belum penuh, next check time");
+        validateTimeLanjutan(input_value);
+      } else {
+        alert("BATERAI SUDAH PENUH");
+        updateResultStatus(input_value);
+      }
+    } catch (error) {
+      alert("GAGAL CHECK BATT VOLT");
+    }
+  };
+
+  //validasi waktu lanjutan
+  const validateTimeLanjutan = async (input_value) => {
+    console.log("masuk validateTimeLanjutan");
+    try {
+      const res = await instanceBackEnd.get("validate-time");
+
+      const time_msg = await res.data.msg;
+      console.log("time message : " + time_msg);
+      // deleteFrame(input_value);
+      if (time_msg === "TIME_IS_OVER") {
+        updateResultStatus(input_value);
+        console.log("WAKTU HABIS");
+      } else {
+        getCms(input_value);
+        console.log("GET CMS");
+      }
+    } catch (error) {
+      alert("GAGAL VALIDASI WAKTU LANJUTAN");
+    }
+  };
+
+  //PROGRAM SELESAI
+  const endProgram = async (input_value) => {
     try {
       const payload = {
         frame_sn: input_value.kode_frame,
@@ -404,81 +712,50 @@ function FrameList() {
 
       const res = await instanceBackEnd.post("getMframByFrame", payload);
       const status_checking = await res.data.data.status_checking;
-      const data_frame_sn = await res.data.data.frame_sn;
+
       const data_result = await res.data.data.result;
+      const root = ReactDOMClient.createRoot(
+        document.getElementById("result_root")
+      );
 
-      //   console.log(data.data.kd_site);
       console.log(status_checking, "status_checking");
+      loading_charging.style.display = "none";
+      div_selesai.style.display = "block";
 
-      if (status_checking === true) {
-        console.log("PROSES CHARGING SELESAI 1" + data_frame_sn);
-        check_selesai = check_selesai + 1;
-
-        if (check_selesai === num_of_device) {
-          console.log("PROSES CHARGING SELESAI, Result : " + data_result);
-          loading_charging.style.display = "none";
-          div_selesai.style.display = "block";
-
-          const root = ReactDOMClient.createRoot(
-            document.getElementById("result_root")
-          );
-
-          // setTimeout(
-          //   await function () {
-          //     window.location.reload(true);
-          //   },
-          //   5000
-          // );
-          if (data_result === "PASS" || data_result === "pass") {
-            const element = (
-              <div>
-                <br />
-                <h1 style={{ textAlign: "center", fontSize: "30px" }}>
-                  RESULT
-                </h1>
-                <h2
-                  style={{
-                    textAlign: "center",
-                    fontSize: "25px",
-                    color: "green",
-                  }}
-                >
-                  {data_result}
-                </h2>
-              </div>
-            );
-            root.render(element);
-          } else {
-            const element = (
-              <div>
-                <br />
-                <h1 style={{ textAlign: "center", fontSize: "30px" }}>
-                  RESULT
-                </h1>
-                <h2
-                  style={{
-                    textAlign: "center",
-                    fontSize: "25px",
-                    color: "red",
-                  }}
-                >
-                  {data_result}
-                </h2>
-              </div>
-            );
-            root.render(element);
-          }
-        } else {
-          console.log("Lanjut Charge");
-        }
-      } else {
-        console.log("PROSES CHARGING BERJALAN" + data_frame_sn);
-        setTimeout(
-          await function () {
-            getStatusCharging(input_value);
-          },
-          5000
+      if (data_result === "PASS" || data_result === "pass") {
+        const element = (
+          <div>
+            <br />
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>RESULT</h1>
+            <h2
+              style={{
+                textAlign: "center",
+                fontSize: "25px",
+                color: "green",
+              }}
+            >
+              {data_result}
+            </h2>
+          </div>
         );
+        root.render(element);
+      } else {
+        const element = (
+          <div>
+            <br />
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>RESULT</h1>
+            <h2
+              style={{
+                textAlign: "center",
+                fontSize: "25px",
+                color: "red",
+              }}
+            >
+              {data_result}
+            </h2>
+          </div>
+        );
+        root.render(element);
       }
     } catch (error) {
       console.log(error);
@@ -493,7 +770,7 @@ function FrameList() {
             className="label"
             style={{ textAlign: "center", fontSize: "30px" }}
           >
-            Battery Charging
+            Battery Charging MERGE
           </label>
           <Link to={"/"} className="button is-success">
             Back
