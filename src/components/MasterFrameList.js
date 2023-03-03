@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 // import axios from "axios";
 import { Link } from "react-router-dom";
 import { instanceBackEnd } from "../api/axios.js";
+import FrameTableList from "./child/FrameTableList.js";
 
 const MasterFrameList = () => {
-  // const [m_frames, setMasterFrame] = useState([]);
   const [masterFrames, setMasterFrames] = useState([]);
 
   useEffect(() => {
@@ -17,15 +17,6 @@ const MasterFrameList = () => {
     setMasterFrames(response.data);
   };
 
-  // const deleteFrame = async (id) => {
-  //   try {
-  //     await instanceBackEnd.delete(`deleteMframe/${id}`);
-  //     getMasterFrames();
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   return (
     <div className="columns mt-5 is-centered">
       <div className="column is-half">
@@ -33,47 +24,7 @@ const MasterFrameList = () => {
         <Link to={"charging"} className="button is-success">
           Start Charging
         </Link>
-        <table className="table is-striped is-fullwidth">
-          <thead>
-            <tr>
-              <th>No</th>
-              {/* <th>Kode Site</th> */}
-              <th>Serial Frame</th>
-              {/* <th>Ip</th> */}
-              <th>Status Test</th>
-              <th>Result Test</th>
-              <th>Test Time</th>
-              {/* <th>Actions</th> */}
-            </tr>
-          </thead>
-          <tbody>
-            {masterFrames.map((masterFrame, index) => (
-              <tr key={masterFrame.id}>
-                <td>{index + 1}</td>
-                {/* <td>{masterFrame.kd_site}</td> */}
-                <td>{masterFrame.frame_sn}</td>
-                {/* <td>{masterFrame.ip_adrs}</td> */}
-                <td>{String(masterFrame.status_test)}</td>
-                <td>{String(masterFrame.result)}</td>
-                <td>{masterFrame.createdAt}</td>
-                {/* <td>
-                  <Link
-                    to={`edit/${masterFrame.id}`}
-                    className="button is-small is-info"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => deleteFrame(masterFrame.id)}
-                    className="button is-small is-danger"
-                  >
-                    Delete
-                  </button>
-                </td> */}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <FrameTableList message={masterFrames} />
       </div>
     </div>
   );

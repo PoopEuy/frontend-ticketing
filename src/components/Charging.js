@@ -6,7 +6,7 @@ import * as ReactDOMClient from "react-dom/client";
 import { Link } from "react-router-dom";
 
 var baris = 0;
-var check_selesai = 0;
+// var check_selesai = 0;
 var count_restart = 0;
 var addressing_loop;
 var set_address_stats;
@@ -16,15 +16,18 @@ var set_status;
 var status_setFrame;
 var element_frame;
 var element_loading;
-var loading_charging;
 var div_selesai;
+let percentRoot = null;
+let max_voltage;
+let total_cell;
+let recti_current;
 
 function FrameList() {
   const [inputdata, SetInputdata] = useState({
     kode_frame: "",
     // status: "",
   });
-
+  const [visible, setVisible] = React.useState(false);
   const [inputarr, setInputarr] = useState([]);
 
   function changehandle(e) {
@@ -36,7 +39,13 @@ function FrameList() {
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       // document.getElementById("addFrame").click();
+      max_voltage = document.getElementById("max_voltage").value;
+      total_cell = document.getElementById("total_cell").value;
+      recti_current = document.getElementById("recti_current").value;
 
+      console.log("max_voltage : " + max_voltage);
+      console.log("total_cell : " + total_cell);
+      console.log("recti_current : " + recti_current);
       getMframByFrame();
     }
   };
@@ -161,7 +170,6 @@ function FrameList() {
 
       element_frame = document.getElementById("kode_frame");
       element_loading = document.getElementById("loading_address");
-      loading_charging = document.getElementById("loading_charging");
       div_selesai = document.getElementById("div_selesai");
 
       // ✅ Set disabled / hiden attribute
@@ -476,6 +484,7 @@ function FrameList() {
         alert("BATERAI SUDAH PENUH");
         // window.location.reload();
         // powerOnRectifier(input_value);
+        updateResultStatus(input_value);
       }
     } catch (error) {
       alert("GAGAL CHECK BATT VOLT");
@@ -486,13 +495,12 @@ function FrameList() {
   const powerOnRectifier = async (input_value) => {
     console.log("powerOnRectifier");
     element_loading.style.display = "none";
-    loading_charging.style.display = "block";
     try {
       const res = await instanceBackEnd.get("power-module-rectifier/true");
       const recpower_msg = await res.data.msg;
       console.log("recpower_msg : " + recpower_msg);
       if (recpower_msg === "POWER_MODULE_RECTIFIER_TURN_ON") {
-        getCms(input_value);
+        setRectifierCurrent(input_value);
       } else {
         alert(recpower_msg);
       }
@@ -593,7 +601,7 @@ function FrameList() {
       console.log("recpowerOff_msg : " + recpowerOff_msg);
 
       if (recpowerOff_msg === "POWER_MODULE_RECTIFIER_TURN_OFF") {
-        setRectifierCurrent(input_value);
+        endProgram(input_value);
       } else {
       }
     } catch (error) {
@@ -604,8 +612,11 @@ function FrameList() {
   const setRectifierCurrent = async (input_value) => {
     console.log("setRectifierCurrent");
     try {
+      // const payload = {
+      //   current: 40,
+      // };
       const payload = {
-        current: 40,
+        current: recti_current,
       };
       const res = await instanceBackEnd.post("set-rectifier-current", payload);
       const rec_status = await res.data.status;
@@ -624,9 +635,13 @@ function FrameList() {
   const setRectifierVoltage = async (input_value) => {
     console.log("setRectifierVoltage");
     try {
+      // const payload = {
+      //   maxVoltage: 3600,
+      //   totalCell: 32,
+      // };
       const payload = {
-        maxVoltage: 3600,
-        totalCell: 32,
+        maxVoltage: max_voltage,
+        totalCell: total_cell,
       };
       const res = await instanceBackEnd.post("set-rectifier-voltage", payload);
       const recVolt_status = await res.data.status;
@@ -634,8 +649,7 @@ function FrameList() {
       console.log("recVolt_status : " + recVolt_status);
 
       if (recVolt_code === 200 && recVolt_status === true) {
-        alert("PROGRAM DIHENTIKAN");
-        endProgram(input_value);
+        getCms(input_value);
         // window.location.reload();
       } else {
       }
@@ -652,13 +666,59 @@ function FrameList() {
       const recData_msg = await res.data.msg;
       console.log("recData_msg : " + recData_msg);
       if (recData_msg === "INSERT_RECTIFIER_DATA_SUCCESS") {
-        checkBatt(input_value);
+        // checkBatt(input_value);
+        totalBattVolt(input_value);
       } else {
         alert("GAGAL GET RECTI DATA !!!");
       }
     } catch (error) {
       alert("GAGAL GET RECTI DATA");
     }
+  };
+
+  //proses loading charge
+  const totalBattVolt = async (input_value) => {
+    console.log("totalBattVolt");
+    try {
+      const payload = {
+        frame_sn: input_value.kode_frame,
+      };
+      const res = await instanceBackEnd.post("total-battery-valtage", payload);
+      const chargePercent = await res.data.msg;
+      console.log("chargePercent : " + chargePercent);
+
+      showprogress(input_value, chargePercent);
+    } catch (error) {
+      alert("GAGAL GET PERSEN");
+    }
+  };
+
+  const showprogress = async (input_value, chargePercent) => {
+    console.log("percentRoot : " + percentRoot);
+    if (!percentRoot) {
+      percentRoot = ReactDOMClient.createRoot(
+        document.getElementById("result_root")
+      );
+      console.log("percentRoot 2: " + percentRoot);
+    }
+
+    const elementPercent = (
+      <div>
+        <label
+          className="label"
+          style={{ textAlign: "center", fontSize: "30px" }}
+        >
+          Charging Sedang Berjalan
+        </label>
+        <p style={{ textAlign: "center", fontSize: "30px", color: "green" }}>
+          {chargePercent} %
+        </p>
+      </div>
+    );
+    percentRoot.render(elementPercent);
+    console.log("percentRoot 3: " + percentRoot);
+
+    checkBatt(input_value);
   };
 
   const checkBatt = async (input_value) => {
@@ -719,7 +779,6 @@ function FrameList() {
       );
 
       console.log(status_checking, "status_checking");
-      loading_charging.style.display = "none";
       div_selesai.style.display = "block";
 
       if (data_result === "PASS" || data_result === "pass") {
@@ -775,7 +834,7 @@ function FrameList() {
           <Link to={"/"} className="button is-success">
             Back
           </Link>
-          <div className="field">
+          <div className="row" style={{ marginBottom: "20px" }}>
             <label className="label">Frame Code</label>
             <div className="control">
               <input
@@ -803,6 +862,58 @@ function FrameList() {
           </div>
 
           <div className="field">
+            <button
+              id="setting_button"
+              className="button is-success"
+              onClick={() => setVisible(!visible)}
+            >
+              {visible ? "Hide Setting" : "Show Setting"}
+            </button>
+            {visible && (
+              <div className="row">
+                <div className="control" style={{ width: "100%" }}>
+                  <label
+                    className="label"
+                    style={{ textAlign: "left", fontSize: "20px" }}
+                  >
+                    Recti Setting
+                  </label>
+                </div>
+
+                <div className="control" style={{ width: "50%" }}>
+                  <label className="label">Max Voltage</label>
+                  <input
+                    id="max_voltage"
+                    type="number"
+                    name="max_voltage"
+                    className="input"
+                  />
+                </div>
+
+                <div className="control" style={{ width: "50%" }}>
+                  <label className="label">Total Cell</label>
+                  <input
+                    id="total_cell"
+                    type="number"
+                    name="total_cell"
+                    className="input"
+                  />
+                </div>
+
+                <div className="control" style={{ width: "50%" }}>
+                  <label className="label">Recti Current</label>
+                  <input
+                    id="recti_current"
+                    type="number"
+                    name="recti_current"
+                    className="input"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="field">
             <div style={{ display: "none" }} id="loading_address">
               <Spinner
                 as="span"
@@ -813,7 +924,7 @@ function FrameList() {
               />
               Loading...
             </div>
-            <div style={{ display: "none" }} id="loading_charging">
+            {/* <div style={{ display: "none" }} id="loading_charging">
               <Spinner
                 as="span"
                 animation="grow"
@@ -821,8 +932,12 @@ function FrameList() {
                 role="status"
                 aria-hidden="true"
               />
-              Charging Sedang Berjalan...
-            </div>
+              <p>
+                Charging Sedang Berjalan...<span id="percentRoot"></span>{" "}
+              </p>
+            </div> */}
+
+            <div id="percentRoot"></div>
           </div>
 
           <div className="field">
