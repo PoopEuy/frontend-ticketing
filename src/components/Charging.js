@@ -21,13 +21,17 @@ let percentRoot = null;
 let max_voltage;
 let total_cell;
 let recti_current;
+let frame_input;
+let rectiSetting = "none";
+let running_program = "true";
+let stop_msg;
 
 function FrameList() {
   const [inputdata, SetInputdata] = useState({
     kode_frame: "",
     // status: "",
   });
-  const [visible, setVisible] = React.useState(false);
+  // const [visible, setVisible] = React.useState(false);
   const [inputarr, setInputarr] = useState([]);
 
   function changehandle(e) {
@@ -229,7 +233,7 @@ function FrameList() {
       }, 1000);
     } else if (set_status === 1 && addressing_loop < 11 && num_of_device > 0) {
       console.log("STOP LOOP go to nextstep, Loop =" + addressing_loop);
-      document.getElementById("kode_frame").value = "";
+      // document.getElementById("kode_frame").value = "";
       element_frame.removeAttribute("disabled");
 
       setTimeout(
@@ -268,27 +272,36 @@ function FrameList() {
 
     for (let i = 0; i < inputarr.length; i++) {
       const input_value = inputarr[i];
+      frame_input = input_value.kode_frame;
       const input_bid = device_address_list[i];
 
-      console.log("status_setFrame FOR1 = " + status_setFrame);
       if (i === 0) {
         console.log("set frame pertama");
-        await setFrame(input_value, input_bid, i);
+        await setFrame(input_bid, i);
       } else if (i > 0 && status_setFrame === 1) {
-        setTimeout(await setFrame(input_value, input_bid, i), 500);
+        setTimeout(await setFrame(input_bid, i), 500);
       } else {
-        console.log("status_setFrame FOR2 = " + status_setFrame);
       }
     }
   }
+  async function settingRecti() {
+    console.log("setting recti");
+    if (rectiSetting === "none") {
+      document.getElementById("setting_div").style.display = "block";
+      rectiSetting = "block";
+    } else {
+      document.getElementById("setting_div").style.display = "none";
+      rectiSetting = "none";
+    }
+  }
 
-  const setFrame = async (input_value, input_bid, i) => {
+  const setFrame = async (input_bid, i) => {
     console.log(input_bid, "input_bid");
     try {
       const payload = {
         bid: input_bid,
         frame_write: 1,
-        frame_name: input_value.kode_frame,
+        frame_name: frame_input,
       };
 
       const res = await instanceBackEnd.post("setFrameCMS", payload);
@@ -300,14 +313,14 @@ function FrameList() {
       if (status_setFrame === 1 && i === 0) {
         setTimeout(
           await function () {
-            setDataCollection(input_value);
+            setDataCollection();
             console.log("sukses set frame, masuk set data collection");
           },
           1000
         );
       } else if (status_setFrame === 1) {
         console.log("sukses set frame");
-        await createTableFrame(input_value);
+        await createTableFrame();
       } else {
         alert(
           "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!"
@@ -320,7 +333,7 @@ function FrameList() {
     }
   };
 
-  const setDataCollection = async (input_value) => {
+  const setDataCollection = async () => {
     try {
       const payload = {
         data_collection: 1,
@@ -332,7 +345,7 @@ function FrameList() {
 
       if (status_dacol === 1) {
         // UpdateMFrameStatus();
-        await createTableFrame(input_value);
+        await createTableFrame();
       } else {
         alert("FAILED SET STATUS DATA COLLETION!!");
         window.location.reload();
@@ -343,10 +356,10 @@ function FrameList() {
     }
   };
 
-  const createTableFrame = async (input_value) => {
+  const createTableFrame = async () => {
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
 
       const res = await instanceBackEnd.post("CreateTable", payload);
@@ -356,7 +369,7 @@ function FrameList() {
 
       if (msg === "success") {
         console.log("SUKSES CREATE TABLE = " + msg);
-        await createMframe(input_value);
+        await createMframe();
       } else {
       }
     } catch (error) {
@@ -367,10 +380,10 @@ function FrameList() {
     }
   };
 
-  const createMframe = async (input_value) => {
+  const createMframe = async () => {
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
         status_test: true, //true = frame dapat di charge
         status_checking: false, // false = frame belum/sedang menjalani charging
       };
@@ -385,14 +398,14 @@ function FrameList() {
         console.log("Mframe Created");
         // setTimeout(
         //   await function () {
-        //     getStatusCharging(input_value);
+        //     getStatusCharging();
         //   },
         //   10000
         // );
 
         setTimeout(
           await function () {
-            validateTime(input_value);
+            validateTime();
           },
           1000
         );
@@ -405,19 +418,19 @@ function FrameList() {
   };
 
   //validasi waktu
-  const validateTime = async (input_value) => {
+  const validateTime = async () => {
     console.log("masuk validate time");
     try {
       const res = await instanceBackEnd.get("validate-time");
 
       const time_msg = await res.data.msg;
       console.log("time message : " + time_msg);
-      // deleteFrame(input_value);
+      // deleteFrame();
       if (time_msg === "TIME_IS_OVER") {
-        deleteFrame(input_value);
+        deleteFrame();
       } else {
         console.log("Lanjut program");
-        checkBatteryVoltage(input_value);
+        checkBatteryVoltage();
       }
     } catch (error) {
       alert("GAGAL VALIDASI WAKTU");
@@ -425,18 +438,18 @@ function FrameList() {
   };
 
   //delete mframe
-  const deleteFrame = async (input_value) => {
+  const deleteFrame = async () => {
     console.log("delete mframe");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("deletebyMframe", payload);
 
       const delete_msg = await res.data.msg;
       console.log("delete_msg : " + delete_msg);
       if (delete_msg === "mframe_deleted") {
-        deleteFrameTable(input_value);
+        deleteFrameTable();
       } else {
         alert("GAGAL DELETE FRAME");
       }
@@ -445,11 +458,11 @@ function FrameList() {
     }
   };
 
-  const deleteFrameTable = async (input_value) => {
+  const deleteFrameTable = async () => {
     console.log("delete mframe table");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("deleteTableFrame", payload);
 
@@ -467,11 +480,11 @@ function FrameList() {
   };
 
   //check battery voltage
-  const checkBatteryVoltage = async (input_value) => {
+  const checkBatteryVoltage = async () => {
     console.log("check batt volt : ");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("check-battery-voltage", payload);
       const batt_msg = await res.data.msg;
@@ -479,12 +492,13 @@ function FrameList() {
 
       if (batt_msg === "BATTERY_NOT_FULLY_CHARGED") {
         console.log("TURN-ON recti");
-        powerOnRectifier(input_value);
+        powerOnRectifier();
       } else {
-        alert("BATERAI SUDAH PENUH");
+        // alert("BATERAI SUDAH PENUH");
         // window.location.reload();
-        // powerOnRectifier(input_value);
-        updateResultStatus(input_value);
+        // powerOnRectifier();
+        stop_msg = "PROGRAM BERHENTI, BATERAI SUDAH PENUH";
+        updateResultStatus();
       }
     } catch (error) {
       alert("GAGAL CHECK BATT VOLT");
@@ -492,7 +506,7 @@ function FrameList() {
   };
 
   //turn-on recti
-  const powerOnRectifier = async (input_value) => {
+  const powerOnRectifier = async () => {
     console.log("powerOnRectifier");
     element_loading.style.display = "none";
     try {
@@ -500,7 +514,7 @@ function FrameList() {
       const recpower_msg = await res.data.msg;
       console.log("recpower_msg : " + recpower_msg);
       if (recpower_msg === "POWER_MODULE_RECTIFIER_TURN_ON") {
-        setRectifierCurrent(input_value);
+        setRectifierCurrent();
       } else {
         alert(recpower_msg);
       }
@@ -510,42 +524,53 @@ function FrameList() {
   };
 
   //getcms
-  const getCms = async (input_value) => {
+  const getCms = async () => {
     console.log("masuk getCms  ");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("cms-data", payload);
       const cms_msg = await res.data.msg;
       console.log("cms_msg : " + cms_msg);
-      if (cms_msg === "DIFFERENT_VOLTAGE_CELL_OK") {
+      if (
+        cms_msg === "DIFFERENT_VOLTAGE_CELL_OK" &&
+        running_program === "true"
+      ) {
         console.log("ambil rect data");
-        rectifierData(input_value);
+        rectifierData();
+      } else if (
+        cms_msg === "DIFFERENT_VOLTAGE_CELL_OK" &&
+        running_program === "false"
+      ) {
+        stop_msg = "PROGRAM DI HENTIKAN";
+        updateResultStatus();
       } else if (cms_msg === "DIFFERENT_VOLTAGE_CELL_TOO_HIGH") {
         console.log("stop recti");
-        alert("PERBEDAAN VOLTAGE TERLALU BESAR");
-        updateResultStatus(input_value);
+        // alert("PERBEDAAN VOLTAGE TERLALU BESAR");
+
+        stop_msg = "PROGRAM BERHENTI, PERBEDAAN VOLTAGE TERLALU BESAR";
+        updateResultStatus();
       } else {
-        getCms(input_value);
+        getCms();
       }
     } catch (error) {
-      alert("GAGAL GET CMS");
+      alert("GAGAL GET CMS, PROGRAM BERHENTI");
     }
   };
 
   //stop recti process (update status)
-  const updateResultStatus = async (input_value) => {
+  const updateResultStatus = async () => {
     console.log("updateResultTest  ");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.put("update-result-status", payload);
       const statusResult_msg = await res.data.msg;
       console.log("statusResult_msg : " + statusResult_msg);
       if (statusResult_msg === "UPDATE_RESULT_STATUS_SUCCESS") {
-        updateStatusTest(input_value);
+        updateStatusTest();
       } else {
         alert("GAGAL UPDATE RESULT TEST !!!");
       }
@@ -554,17 +579,17 @@ function FrameList() {
     }
   };
 
-  const updateStatusTest = async (input_value) => {
+  const updateStatusTest = async () => {
     console.log("updateStatusTest  ");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.put("update-status-test", payload);
       const statusTest_msg = await res.data.msg;
       console.log("statusTest_msg : " + statusTest_msg);
       if (statusTest_msg === "UPDATE_STATUS_TEST_SUCCESS") {
-        updateStatusChecking(input_value);
+        updateStatusChecking();
       } else {
         alert("GAGAL UPDATE STATUS TEST !!!");
       }
@@ -573,17 +598,17 @@ function FrameList() {
     }
   };
 
-  const updateStatusChecking = async (input_value) => {
+  const updateStatusChecking = async () => {
     console.log("updateStatusChecking  ");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.put("update-status-checking", payload);
       const statusCheck_msg = await res.data.msg;
       console.log("statusCheck_msg : " + statusCheck_msg);
       if (statusCheck_msg === "UPDATE_STATUS_CHECKING_SUCCESS") {
-        powerOffRectifier(input_value);
+        powerOffRectifier();
       } else {
         alert("GAGAL UPDATE CHECK TEST !!!");
       }
@@ -593,7 +618,7 @@ function FrameList() {
   };
 
   //stop recti process (turnoff recti)
-  const powerOffRectifier = async (input_value) => {
+  const powerOffRectifier = async () => {
     console.log("powerOffRectifier");
     try {
       const res = await instanceBackEnd.get("power-module-rectifier/:false");
@@ -601,7 +626,7 @@ function FrameList() {
       console.log("recpowerOff_msg : " + recpowerOff_msg);
 
       if (recpowerOff_msg === "POWER_MODULE_RECTIFIER_TURN_OFF") {
-        endProgram(input_value);
+        endProgram();
       } else {
       }
     } catch (error) {
@@ -609,7 +634,7 @@ function FrameList() {
     }
   };
 
-  const setRectifierCurrent = async (input_value) => {
+  const setRectifierCurrent = async () => {
     console.log("setRectifierCurrent");
     try {
       // const payload = {
@@ -624,7 +649,7 @@ function FrameList() {
       console.log("rec_status : " + rec_status);
 
       if (rec_code === 200 && rec_status === true) {
-        setRectifierVoltage(input_value);
+        setRectifierVoltage();
       } else {
       }
     } catch (error) {
@@ -632,7 +657,7 @@ function FrameList() {
     }
   };
 
-  const setRectifierVoltage = async (input_value) => {
+  const setRectifierVoltage = async () => {
     console.log("setRectifierVoltage");
     try {
       // const payload = {
@@ -649,7 +674,7 @@ function FrameList() {
       console.log("recVolt_status : " + recVolt_status);
 
       if (recVolt_code === 200 && recVolt_status === true) {
-        getCms(input_value);
+        getCms();
         // window.location.reload();
       } else {
       }
@@ -659,15 +684,24 @@ function FrameList() {
   };
 
   //get rect data
-  const rectifierData = async (input_value) => {
+  const rectifierData = async () => {
     console.log("powerOffRectifier");
     try {
       const res = await instanceBackEnd.get("rectifier-data");
       const recData_msg = await res.data.msg;
       console.log("recData_msg : " + recData_msg);
-      if (recData_msg === "INSERT_RECTIFIER_DATA_SUCCESS") {
-        // checkBatt(input_value);
-        totalBattVolt(input_value);
+      if (
+        recData_msg === "INSERT_RECTIFIER_DATA_SUCCESS" &&
+        running_program === "true"
+      ) {
+        // checkBatt();
+        totalBattVolt();
+      } else if (
+        recData_msg === "INSERT_RECTIFIER_DATA_SUCCESS" &&
+        running_program === "false"
+      ) {
+        stop_msg = "PROGRAM DI HENTIKAN";
+        updateResultStatus();
       } else {
         alert("GAGAL GET RECTI DATA !!!");
       }
@@ -677,33 +711,33 @@ function FrameList() {
   };
 
   //proses loading charge
-  const totalBattVolt = async (input_value) => {
+  const totalBattVolt = async () => {
     console.log("totalBattVolt");
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("total-battery-valtage", payload);
       const chargePercent = await res.data.msg;
       console.log("chargePercent : " + chargePercent);
 
-      showprogress(input_value, chargePercent);
+      showprogress(chargePercent);
     } catch (error) {
       alert("GAGAL GET PERSEN");
     }
   };
 
-  const showprogress = async (input_value, chargePercent) => {
+  const showprogress = async (chargePercent) => {
     console.log("percentRoot : " + percentRoot);
     if (!percentRoot) {
       percentRoot = ReactDOMClient.createRoot(
-        document.getElementById("result_root")
+        document.getElementById("percentRoot")
       );
       console.log("percentRoot 2: " + percentRoot);
     }
 
     const elementPercent = (
-      <div>
+      <div className="col-md-12 text-center">
         <label
           className="label"
           style={{ textAlign: "center", fontSize: "30px" }}
@@ -713,29 +747,48 @@ function FrameList() {
         <p style={{ textAlign: "center", fontSize: "30px", color: "green" }}>
           {chargePercent} %
         </p>
+
+        <button
+          id="stop_process"
+          className="button is-success"
+          onClick={stopProcess}
+        >
+          STOP CHARGING PROCESS
+        </button>
       </div>
     );
     percentRoot.render(elementPercent);
     console.log("percentRoot 3: " + percentRoot);
 
-    checkBatt(input_value);
+    checkBatt();
   };
 
-  const checkBatt = async (input_value) => {
+  const checkBatt = async () => {
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
       const res = await instanceBackEnd.post("check-battery-voltage", payload);
       const batt_msg = await res.data.msg;
       console.log("batt_msg : " + batt_msg);
 
-      if (batt_msg === "BATTERY_NOT_FULLY_CHARGED") {
+      if (
+        batt_msg === "BATTERY_NOT_FULLY_CHARGED" &&
+        running_program === "true"
+      ) {
         console.log("batterai belum penuh, next check time");
-        validateTimeLanjutan(input_value);
+        validateTimeLanjutan();
+      } else if (
+        batt_msg === "BATTERY_NOT_FULLY_CHARGED" &&
+        running_program === "false"
+      ) {
+        stop_msg = "PROGRAM DI HENTIKAN";
+        updateResultStatus();
       } else {
-        alert("BATERAI SUDAH PENUH");
-        updateResultStatus(input_value);
+        // alert("BATERAI SUDAH PENUH");
+
+        stop_msg = "PROGRAM BERHENTI, BATERAI SUDAH PENUH";
+        updateResultStatus();
       }
     } catch (error) {
       alert("GAGAL CHECK BATT VOLT");
@@ -743,31 +796,106 @@ function FrameList() {
   };
 
   //validasi waktu lanjutan
-  const validateTimeLanjutan = async (input_value) => {
+  const validateTimeLanjutan = async () => {
     console.log("masuk validateTimeLanjutan");
     try {
       const res = await instanceBackEnd.get("validate-time");
 
       const time_msg = await res.data.msg;
       console.log("time message : " + time_msg);
-      // deleteFrame(input_value);
-      if (time_msg === "TIME_IS_OVER") {
-        updateResultStatus(input_value);
-        console.log("WAKTU HABIS");
-      } else {
-        getCms(input_value);
+      // deleteFrame();
+      if (time_msg === "TIME_IS_NOT_OVER" && running_program === "true") {
+        getCms();
         console.log("GET CMS");
+      } else if (
+        time_msg === "TIME_IS_NOT_OVER" &&
+        running_program === "false"
+      ) {
+        stop_msg = "PROGRAM DI HENTIKAN";
+        updateResultStatus();
+      } else {
+        stop_msg = "PROGRAM BERHENTI, WAKTU HABIS";
+        updateResultStatus();
+        console.log("WAKTU HABIS");
       }
     } catch (error) {
       alert("GAGAL VALIDASI WAKTU LANJUTAN");
     }
   };
+  //SAVE RECTI
+  const save_recti = async () => {
+    console.log("save recti");
+    max_voltage = document.getElementById("max_voltage").value;
+    total_cell = document.getElementById("total_cell").value;
+    recti_current = document.getElementById("recti_current").value;
 
+    console.log("max_voltage : " + max_voltage);
+    console.log("total_cell : " + total_cell);
+    console.log("recti_current : " + recti_current);
+    saveRectifierCurrent();
+  };
+
+  const saveRectifierCurrent = async () => {
+    console.log("saveRectifierCurrent");
+    try {
+      // const payload = {
+      //   current: 40,
+      // };
+      const payload = {
+        current: recti_current,
+      };
+      const res = await instanceBackEnd.post("set-rectifier-current", payload);
+      const saveRec_status = await res.data.status;
+      const saveRec_code = await res.data.code;
+      console.log("saveRec_status : " + saveRec_status);
+
+      if (saveRec_code === 200 && saveRec_status === true) {
+        saveRectifierVoltage();
+      } else {
+      }
+    } catch (error) {
+      alert("GAGAL SAVE CURRENT RECTI");
+    }
+  };
+
+  const saveRectifierVoltage = async () => {
+    console.log("saveRectifierVoltage");
+    try {
+      // const payload = {
+      //   maxVoltage: 3600,
+      //   totalCell: 32,
+      // };
+      const payload = {
+        maxVoltage: max_voltage,
+        totalCell: total_cell,
+      };
+      const res = await instanceBackEnd.post("set-rectifier-voltage", payload);
+      const saveRecVolt_status = await res.data.status;
+      const saveRecVolt_code = await res.data.code;
+      console.log("saveRecVolt_status : " + saveRecVolt_status);
+
+      if (saveRecVolt_code === 200 && saveRecVolt_status === true) {
+        alert("SUKSES SAVE RECTI VOLTAGE");
+      } else {
+      }
+    } catch (error) {
+      alert("GAGAL SAVE RECTI VOLTAGE");
+    }
+  };
+
+  //FORCE STOP PROGRAM
+  const stopProcess = async () => {
+    console.log("FORCE STOP PROCESS");
+    running_program = "false";
+  };
   //PROGRAM SELESAI
-  const endProgram = async (input_value) => {
+  const endProgram = async () => {
+    const div_percent = document.getElementById("percent_div");
+    div_percent.style.display = "none";
+
     try {
       const payload = {
-        frame_sn: input_value.kode_frame,
+        frame_sn: frame_input,
       };
 
       const res = await instanceBackEnd.post("getMframByFrame", payload);
@@ -785,16 +913,22 @@ function FrameList() {
         const element = (
           <div>
             <br />
-            <h1 style={{ textAlign: "center", fontSize: "30px" }}>RESULT</h1>
-            <h2
-              style={{
-                textAlign: "center",
-                fontSize: "25px",
-                color: "green",
-              }}
-            >
-              {data_result}
-            </h2>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              {stop_msg}
+            </h1>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              RESULT :
+              <span
+                style={{
+                  textAlign: "center",
+                  fontSize: "25px",
+                  color: "green",
+                }}
+              >
+                {" "}
+                {data_result}
+              </span>
+            </h1>
           </div>
         );
         root.render(element);
@@ -802,16 +936,22 @@ function FrameList() {
         const element = (
           <div>
             <br />
-            <h1 style={{ textAlign: "center", fontSize: "30px" }}>RESULT</h1>
-            <h2
-              style={{
-                textAlign: "center",
-                fontSize: "25px",
-                color: "red",
-              }}
-            >
-              {data_result}
-            </h2>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              {stop_msg}
+            </h1>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              RESULT :
+              <span
+                style={{
+                  textAlign: "center",
+                  fontSize: "25px",
+                  color: "red",
+                }}
+              >
+                {" "}
+                {data_result}
+              </span>
+            </h1>
           </div>
         );
         root.render(element);
@@ -865,52 +1005,10 @@ function FrameList() {
             <button
               id="setting_button"
               className="button is-success"
-              onClick={() => setVisible(!visible)}
+              onClick={settingRecti}
             >
-              {visible ? "Hide Setting" : "Show Setting"}
+              Setting Button
             </button>
-            {visible && (
-              <div className="row">
-                <div className="control" style={{ width: "100%" }}>
-                  <label
-                    className="label"
-                    style={{ textAlign: "left", fontSize: "20px" }}
-                  >
-                    Recti Setting
-                  </label>
-                </div>
-
-                <div className="control" style={{ width: "50%" }}>
-                  <label className="label">Max Voltage</label>
-                  <input
-                    id="max_voltage"
-                    type="number"
-                    name="max_voltage"
-                    className="input"
-                  />
-                </div>
-
-                <div className="control" style={{ width: "50%" }}>
-                  <label className="label">Total Cell</label>
-                  <input
-                    id="total_cell"
-                    type="number"
-                    name="total_cell"
-                    className="input"
-                  />
-                </div>
-
-                <div className="control" style={{ width: "50%" }}>
-                  <label className="label">Recti Current</label>
-                  <input
-                    id="recti_current"
-                    type="number"
-                    name="recti_current"
-                    className="input"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="field">
@@ -936,8 +1034,6 @@ function FrameList() {
                 Charging Sedang Berjalan...<span id="percentRoot"></span>{" "}
               </p>
             </div> */}
-
-            <div id="percentRoot"></div>
           </div>
 
           <div className="field">
@@ -959,6 +1055,76 @@ function FrameList() {
           </div>
         </div>
       </div>
+
+      <div className="columns mt-5 is-centered">
+        <div
+          className="column is-half"
+          id="setting_div"
+          style={{ display: "none" }}
+        >
+          <div className="control" style={{ width: "100%" }}>
+            <div className="control" style={{ width: "100%" }}>
+              <label
+                className="label"
+                style={{ textAlign: "left", fontSize: "20px" }}
+              >
+                Recti Setting
+              </label>
+            </div>
+          </div>
+          <div className="control" style={{ width: "100%" }}>
+            <div style={{ width: "45%", float: "left" }}>
+              <label className="label">Max Voltage</label>
+              <input
+                id="max_voltage"
+                type="number"
+                name="max_voltage"
+                className="input"
+              />
+            </div>
+
+            <div style={{ width: "45%", float: "right" }}>
+              <label className="label">Total Cell</label>
+              <input
+                id="total_cell"
+                type="number"
+                name="total_cell"
+                className="input"
+              />
+            </div>
+          </div>
+          <div className="control" style={{ width: "100%" }}>
+            <div className="control" style={{ width: "45%", float: "left" }}>
+              <label className="label">Recti Current</label>
+              <input
+                id="recti_current"
+                type="number"
+                name="recti_current"
+                className="input"
+              />
+            </div>
+          </div>
+          <div className="control" style={{ width: "100%" }}>
+            <div
+              className="control"
+              style={{ width: "45%", float: "left", marginTop: "10px" }}
+            >
+              <button
+                id="save_recti"
+                className="button is-success"
+                onClick={save_recti}
+              >
+                SAVE RECTI
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="columns mt-5 is-centered" id="percent_div">
+        <div id="percentRoot"></div>
+      </div>
+
       <div className="columns mt-5 is-centered">
         <div style={{ display: "none" }} id="div_selesai">
           <label
@@ -969,6 +1135,7 @@ function FrameList() {
           </label>
         </div>
       </div>
+
       <div className="columns mt-5 is-centered">
         <div id="result_root"></div>
       </div>
