@@ -19,12 +19,15 @@ var element_loading;
 var div_selesai;
 let percentRoot = null;
 let max_voltage;
+let min_voltage;
 let total_cell;
 let recti_current;
 let frame_input;
 let rectiSetting = "none";
 let running_program = "true";
 let stop_msg;
+let test_count;
+let reCharge = false;
 
 function FrameList() {
   const [inputdata, SetInputdata] = useState({
@@ -44,10 +47,12 @@ function FrameList() {
     if (event.key === "Enter") {
       // document.getElementById("addFrame").click();
       max_voltage = document.getElementById("max_voltage").value;
+      min_voltage = document.getElementById("min_voltage").value;
       total_cell = document.getElementById("total_cell").value;
       recti_current = document.getElementById("recti_current").value;
 
       console.log("max_voltage : " + max_voltage);
+      console.log("min_voltage : " + min_voltage);
       console.log("total_cell : " + total_cell);
       console.log("recti_current : " + recti_current);
       getMframByFrame();
@@ -62,10 +67,9 @@ function FrameList() {
 
       const res = await instanceBackEnd.post("getMframByFrame", payload);
       const data = await res.data.data;
-      const status = await res.status;
 
       console.log(data, "data");
-      console.log(status, "nilai status");
+
       if (data === null) {
         // await addFrame();
         if (baris === 0) {
@@ -74,19 +78,43 @@ function FrameList() {
           await addFrame();
         }
       } else {
-        alert("FRAME SUDAH TERDAFTAR, HARAP SCAN KODE FRAME YANG BERBEDA");
-
-        //   confirm("FRAME SUDAH TERDAFTAR, HARAP SCAN KODE FRAME YANG BERBEDA")
-        // ) {
-        //   // Save it!
-        //   console.log("ok");
-        // } else {
-        //   // Do nothing!
-        //   console.log("cancel");
-        // }
+        // alert("FRAME SUDAH TERDAFTAR, HARAP SCAN KODE FRAME YANG BERBEDA");
+        test_count = await data.test_count;
+        let text = "FRAME SUDAH TERDAFTAR, APAKAH ANDA INGIN CHARGE ULANG?";
+        if (window.confirm(text) === true) {
+          console.log("OK");
+          chargeUlang();
+        } else {
+          console.log("CANCEL");
+        }
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  //udpdate mframe untuk charget ulang
+  const chargeUlang = async () => {
+    test_count = test_count + 1;
+
+    const payload = {
+      frame_sn: kode_frame,
+      result: "",
+      status_test: true,
+      status_checking: false,
+      test_count: test_count,
+    };
+    const res = await instanceBackEnd.patch("updateMframeByFrame", payload);
+
+    const statusUpdate = await res.data.msg;
+    console.log("statusUpdate : " + statusUpdate);
+
+    reCharge = true;
+    console.log("reCharge :" + reCharge);
+    if (statusUpdate === "update success") {
+      await restartCMS();
+    } else {
+      alert("GAGAL UPDATE MFRAME SAAT INGIN RECHARGE");
     }
   };
 
@@ -320,7 +348,16 @@ function FrameList() {
         );
       } else if (status_setFrame === 1) {
         console.log("sukses set frame");
-        await createTableFrame();
+        if (reCharge === true) {
+          setTimeout(
+            await function () {
+              validateTime();
+            },
+            1000
+          );
+        } else {
+          await createTableFrame();
+        }
       } else {
         alert(
           "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!"
@@ -345,7 +382,16 @@ function FrameList() {
 
       if (status_dacol === 1) {
         // UpdateMFrameStatus();
-        await createTableFrame();
+        if (reCharge === true) {
+          setTimeout(
+            await function () {
+              validateTime();
+            },
+            1000
+          );
+        } else {
+          await createTableFrame();
+        }
       } else {
         alert("FAILED SET STATUS DATA COLLETION!!");
         window.location.reload();
@@ -413,7 +459,7 @@ function FrameList() {
         alert("CREATE MFRAME GAGAL! HARAP COBA KEMBALI ");
       }
     } catch (error) {
-      alert("FRAME SUDAH TERDAFTAR");
+      alert("ERROR CREATE FRAME");
     }
   };
 
@@ -425,8 +471,9 @@ function FrameList() {
 
       const time_msg = await res.data.msg;
       console.log("time message : " + time_msg);
-      // deleteFrame();
+
       if (time_msg === "TIME_IS_OVER") {
+        alert("WAKTU CHARGE SUDAH BERAKHIR, HARAP COBA KEMBALI BESOK!");
         deleteFrame();
       } else {
         console.log("Lanjut program");
@@ -469,7 +516,7 @@ function FrameList() {
       const deletet_msg = await res.data.msg;
       console.log("deletetable_msg : " + deletet_msg);
       if (deletet_msg === "table_deleted") {
-        alert("GAGAL VALIDASI WAKTU, HARAP COBA KEMBALI BESOK");
+        alert("FRAME BERHASIL DI HAPUS");
         window.location.reload();
       } else {
         alert("ERROR DELETE TABLE");
@@ -514,12 +561,13 @@ function FrameList() {
       const recpower_msg = await res.data.msg;
       console.log("recpower_msg : " + recpower_msg);
       if (recpower_msg === "POWER_MODULE_RECTIFIER_TURN_ON") {
-        setRectifierCurrent();
+        insertDefaultSetting();
       } else {
         alert(recpower_msg);
       }
     } catch (error) {
       alert("GAGAL TURN ON RECTI");
+      deleteFrame();
     }
   };
 
@@ -555,7 +603,8 @@ function FrameList() {
         getCms();
       }
     } catch (error) {
-      alert("GAGAL GET CMS, PROGRAM BERHENTI");
+      // alert("GAGAL GET CMS, PROGRAM BERHENTI");
+      console.log("GAGAL GET CMS, PROGRAM BERHENTI");
     }
   };
 
@@ -633,6 +682,30 @@ function FrameList() {
       alert("GAGAL TURN OFF RECTI");
     }
   };
+  const insertDefaultSetting = async () => {
+    console.log("insertDefaultSetting");
+    try {
+      const payload = {
+        maxVoltage: max_voltage,
+        minVoltage: min_voltage,
+        totalCell: total_cell,
+        current: recti_current,
+      };
+
+      const res = await instanceBackEnd.post("insert-default-setting", payload);
+      const recDefaultStatus = await res.data.status;
+      console.log("recDefaultStatus" + recDefaultStatus);
+
+      if (recDefaultStatus === true) {
+        setRectifierCurrent();
+      } else {
+        alert("GAGAL INSERT SETTING");
+        deleteFrame();
+      }
+    } catch (error) {
+      alert("GAGAL INSERT RECTI");
+    }
+  };
 
   const setRectifierCurrent = async () => {
     console.log("setRectifierCurrent");
@@ -666,6 +739,7 @@ function FrameList() {
       // };
       const payload = {
         maxVoltage: max_voltage,
+        minVoltage: min_voltage,
         totalCell: total_cell,
       };
       const res = await instanceBackEnd.post("set-rectifier-voltage", payload);
@@ -706,7 +780,8 @@ function FrameList() {
         alert("GAGAL GET RECTI DATA !!!");
       }
     } catch (error) {
-      alert("GAGAL GET RECTI DATA");
+      // alert("GAGAL GET RECTI DATA");
+      console.log("GAGAL GET RECTI DATA");
     }
   };
 
@@ -803,7 +878,7 @@ function FrameList() {
 
       const time_msg = await res.data.msg;
       console.log("time message : " + time_msg);
-      // deleteFrame();
+
       if (time_msg === "TIME_IS_NOT_OVER" && running_program === "true") {
         getCms();
         console.log("GET CMS");
@@ -826,10 +901,12 @@ function FrameList() {
   const save_recti = async () => {
     console.log("save recti");
     max_voltage = document.getElementById("max_voltage").value;
+    min_voltage = document.getElementById("min_voltage").value;
     total_cell = document.getElementById("total_cell").value;
     recti_current = document.getElementById("recti_current").value;
 
     console.log("max_voltage : " + max_voltage);
+    console.log("min_voltage : " + min_voltage);
     console.log("total_cell : " + total_cell);
     console.log("recti_current : " + recti_current);
     saveRectifierCurrent();
@@ -867,6 +944,7 @@ function FrameList() {
       // };
       const payload = {
         maxVoltage: max_voltage,
+        minVoltage: min_voltage,
         totalCell: total_cell,
       };
       const res = await instanceBackEnd.post("set-rectifier-voltage", payload);
@@ -1007,7 +1085,7 @@ function FrameList() {
               className="button is-success"
               onClick={settingRecti}
             >
-              Setting Button
+              Setting Recti
             </button>
           </div>
 
@@ -1094,7 +1172,16 @@ function FrameList() {
             </div>
           </div>
           <div className="control" style={{ width: "100%" }}>
-            <div className="control" style={{ width: "45%", float: "left" }}>
+            <div style={{ width: "45%", float: "left" }}>
+              <label className="label">Min Voltage</label>
+              <input
+                id="min_voltage"
+                type="number"
+                name="min_voltage"
+                className="input"
+              />
+            </div>
+            <div style={{ width: "45%", float: "right" }}>
               <label className="label">Recti Current</label>
               <input
                 id="recti_current"
