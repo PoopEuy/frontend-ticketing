@@ -605,6 +605,12 @@ function FrameList() {
     } catch (error) {
       // alert("GAGAL GET CMS, PROGRAM BERHENTI");
       console.log("GAGAL GET CMS, PROGRAM BERHENTI");
+      setTimeout(
+        await function () {
+          getCms();
+        },
+        1000
+      );
     }
   };
 
@@ -782,6 +788,12 @@ function FrameList() {
     } catch (error) {
       // alert("GAGAL GET RECTI DATA");
       console.log("GAGAL GET RECTI DATA");
+      setTimeout(
+        await function () {
+          getCms();
+        },
+        1000
+      );
     }
   };
 
