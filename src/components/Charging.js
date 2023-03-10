@@ -4,6 +4,8 @@ import Spinner from "react-bootstrap/Spinner";
 // import ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 import { Link } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 
 var baris = 0;
 // var check_selesai = 0;
@@ -30,6 +32,12 @@ let test_count;
 let reCharge = false;
 
 function FrameList() {
+  const [showPassword1, modalPassword1] = useState(false);
+  const handleClose = () => modalPassword1(false);
+
+  const [showPassword2, modalPassword2] = useState(false);
+  const handleClose2 = () => modalPassword2(false);
+
   const [inputdata, SetInputdata] = useState({
     kode_frame: "",
     // status: "",
@@ -55,7 +63,48 @@ function FrameList() {
       console.log("min_voltage : " + min_voltage);
       console.log("total_cell : " + total_cell);
       console.log("recti_current : " + recti_current);
-      getMframByFrame();
+
+      if (
+        max_voltage !== "" ||
+        min_voltage !== "" ||
+        total_cell !== "" ||
+        recti_current !== ""
+      ) {
+        console.log("check password");
+        modalPassword1(true);
+      } else {
+        console.log("luanjut");
+        getMframByFrame();
+      }
+    }
+  };
+
+  //checkpassword_awal
+  const check_password_awal = async () => {
+    console.log("CHeck Password");
+    const password_recti1 = document.getElementById("password_recti1").value;
+    console.log("password_recti1 : " + password_recti1);
+
+    try {
+      const payload = {
+        username: "teknisi",
+        password: password_recti1,
+      };
+      const res = await instanceBackEnd.post("/login", payload);
+      const pass1Msg = res.data.msg;
+      console.log("pass1Msg : " + pass1Msg);
+      if (pass1Msg === "USER_LOGGED_IN_SUCCESSFULLY") {
+        console.log("login sukses");
+
+        modalPassword1(false);
+        getMframByFrame();
+      } else {
+        console.log("login gagal");
+        const label_p1 = document.getElementById("label_p1");
+        label_p1.style.display = "block";
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -909,6 +958,7 @@ function FrameList() {
       alert("GAGAL VALIDASI WAKTU LANJUTAN");
     }
   };
+
   //SAVE RECTI
   const save_recti = async () => {
     console.log("save recti");
@@ -921,7 +971,50 @@ function FrameList() {
     console.log("min_voltage : " + min_voltage);
     console.log("total_cell : " + total_cell);
     console.log("recti_current : " + recti_current);
-    saveRectifierCurrent();
+
+    if (
+      max_voltage !== "" ||
+      min_voltage !== "" ||
+      total_cell !== "" ||
+      recti_current !== ""
+    ) {
+      console.log("check password");
+      modalPassword2(true);
+    } else {
+    }
+  };
+
+  //checkpassword_dua
+  const check_password_dua = async () => {
+    console.log("CHeck Password2");
+    const password_recti2 = document.getElementById("password_recti2").value;
+    console.log("password_recti2 : " + password_recti2);
+
+    try {
+      const payload = {
+        username: "teknisi",
+        password: password_recti2,
+      };
+      const res = await instanceBackEnd.post("/login", payload);
+
+      const pass1Msg = res.data.msg;
+      console.log("pass1Msg : " + pass1Msg);
+      if (pass1Msg === "USER_LOGGED_IN_SUCCESSFULLY") {
+        console.log("login sukses save recti");
+
+        modalPassword2(false);
+
+        const label_p2 = document.getElementById("label_p2");
+        label_p2.style.display = "none";
+        saveRectifierCurrent();
+      } else {
+        console.log("login gagal");
+        const label_p2 = document.getElementById("label_p2");
+        label_p2.style.display = "block";
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const saveRectifierCurrent = async () => {
@@ -1261,6 +1354,75 @@ function FrameList() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* modal */}
+      <div className="columns mt-5 is-centered">
+        <Modal show={showPassword1}>
+          <Modal.Header closeButton onClick={handleClose}>
+            <Modal.Title>
+              <p>PEMERIKSAAN ADMIN!</p>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <label className="label">PASSWORD</label>
+            <input
+              id="password_recti1"
+              type="password"
+              name="password_recti1"
+              className="input"
+            />
+            <div
+              id="label_p1"
+              className="label"
+              style={{ color: "red", display: "none" }}
+            >
+              <label>PASSWORD SALAH</label>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={check_password_awal}>
+              Check Password
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
+
+      <div className="columns mt-5 is-centered">
+        <Modal show={showPassword2}>
+          <Modal.Header closeButton onClick={handleClose2}>
+            <Modal.Title>
+              <p>PEMERIKSAAN ADMIN!</p>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <label className="label">PASSWORD</label>
+            <input
+              id="password_recti2"
+              type="password"
+              name="password_recti2"
+              className="input"
+            />
+            <div
+              id="label_p2"
+              className="label"
+              style={{ color: "red", display: "none" }}
+            >
+              <label>PASSWORD SALAH</label>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose2}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={check_password_dua}>
+              Check Password
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );
