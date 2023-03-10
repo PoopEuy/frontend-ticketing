@@ -3,6 +3,7 @@ version: '3.7'
 services:
   app-frontend-charging:
     container_name: frontend-charging
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ./Dockerfile
