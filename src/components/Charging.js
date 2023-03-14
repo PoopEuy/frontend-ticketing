@@ -597,7 +597,14 @@ function FrameList() {
         updateResultStatus();
       }
     } catch (error) {
-      alert("GAGAL CHECK BATT VOLT");
+      // alert("GAGAL CHECK BATT VOLT");
+      console.log("GAGAL CHECK BATT VOLT");
+      setTimeout(
+        await function () {
+          checkBatteryVoltage();
+        },
+        1000
+      );
     }
   };
 
@@ -859,7 +866,9 @@ function FrameList() {
 
       showprogress(chargePercent);
     } catch (error) {
-      alert("GAGAL GET PERSEN");
+      // alert("GAGAL GET PERSEN");
+      console.log("gagal get persen");
+      totalBattVolt();
     }
   };
 
