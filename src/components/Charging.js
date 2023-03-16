@@ -869,8 +869,8 @@ function FrameList() {
     } catch (error) {
       // alert("GAGAL GET PERSEN");
       console.log("gagal get persen");
-      
-      if (stop_get_persen < 11){
+
+      if (stop_get_persen < 11) {
         stop_get_persen = stop_get_persen + 1;
         setTimeout(
           await function () {
@@ -878,9 +878,8 @@ function FrameList() {
           },
           1000
         );
-      }else{
-        //force stop program
-        stopProcess(); 
+      } else {
+      }
     }
   };
 
