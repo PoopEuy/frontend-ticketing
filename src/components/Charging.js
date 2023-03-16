@@ -10,6 +10,7 @@ import Modal from "react-bootstrap/Modal";
 var baris = 0;
 // var check_selesai = 0;
 var count_restart = 0;
+var stop_get_persen = 0;
 var addressing_loop;
 var set_address_stats;
 var num_of_device;
@@ -868,7 +869,18 @@ function FrameList() {
     } catch (error) {
       // alert("GAGAL GET PERSEN");
       console.log("gagal get persen");
-      totalBattVolt();
+      
+      if (stop_get_persen < 11){
+        stop_get_persen = stop_get_persen + 1;
+        setTimeout(
+          await function () {
+            totalBattVolt();
+          },
+          1000
+        );
+      }else{
+        //force stop program
+        stopProcess(); 
     }
   };
 
