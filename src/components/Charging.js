@@ -821,7 +821,7 @@ function FrameList() {
         frame_sn: frame_input,
       };
 
-      const res = await instanceBackEnd.put("charging-time", payload);
+      const res = await instanceBackEnd.post("charging-time", payload);
       const chargeTime_msg = await res.data.msg;
       if (chargeTime_msg === "GET_LONG_BATTERY_CHARGING_TIME_SUCCESS") {
         powerOffRectifier();
