@@ -7,9 +7,7 @@ function FrameTableList(props) {
       <thead>
         <tr>
           <th>No</th>
-          {/* <th>Kode Site</th> */}
           <th>Serial Frame</th>
-          {/* <th>Ip</th> */}
           <th>Status Test</th>
           <th>Result Test</th>
           <th>Test Time</th>
@@ -20,12 +18,10 @@ function FrameTableList(props) {
         {master_frame.map((masterFrame, index) => (
           <tr key={masterFrame.id}>
             <td>{index + 1}</td>
-            {/* <td>{masterFrame.kd_site}</td> */}
             <td>{masterFrame.frame_sn}</td>
-            {/* <td>{masterFrame.ip_adrs}</td> */}
             <td>{String(masterFrame.status_test)}</td>
             <td>{String(masterFrame.result)}</td>
-            <td>{masterFrame.createdAt}</td>
+            <td>{masterFrame.duration_charging}</td>
             {/* <td>
                   <Link
                     to={`edit/${masterFrame.id}`}

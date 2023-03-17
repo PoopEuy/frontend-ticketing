@@ -11,6 +11,14 @@ var baris = 0;
 // var check_selesai = 0;
 var count_restart = 0;
 var stop_get_persen = 0;
+var count_resultStatus = 0;
+var count_statusTest = 0;
+var count_statusChecking = 0;
+var count_rectiOff = 0;
+var count_rectiCurrent = 0;
+var count_rectiVoltage = 0;
+var count_checkBatt = 0;
+var count_chargeTime = 0;
 var addressing_loop;
 var set_address_stats;
 var num_of_device;
@@ -165,6 +173,7 @@ function FrameList() {
       await restartCMS();
     } else {
       alert("GAGAL UPDATE MFRAME SAAT INGIN RECHARGE");
+      window.location.reload();
     }
   };
 
@@ -412,11 +421,13 @@ function FrameList() {
         alert(
           "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!"
         );
+        window.location.reload();
       }
     } catch (error) {
       alert(
         "SET FRAME GAGAL! HARAP PERIKSA KONEKSI RMS DAN PERANGKAT ANDA !!!"
       );
+      window.location.reload();
     }
   };
 
@@ -507,9 +518,11 @@ function FrameList() {
         );
       } else {
         alert("CREATE MFRAME GAGAL! HARAP COBA KEMBALI ");
+        window.location.reload();
       }
     } catch (error) {
       alert("ERROR CREATE FRAME");
+      window.location.reload();
     }
   };
 
@@ -531,6 +544,7 @@ function FrameList() {
       }
     } catch (error) {
       alert("GAGAL VALIDASI WAKTU");
+      window.location.reload();
     }
   };
 
@@ -549,9 +563,11 @@ function FrameList() {
         deleteFrameTable();
       } else {
         alert("GAGAL DELETE FRAME");
+        window.location.reload();
       }
     } catch (error) {
       alert("GAGAL DELETE FRAME");
+      window.location.reload();
     }
   };
 
@@ -570,9 +586,11 @@ function FrameList() {
         window.location.reload();
       } else {
         alert("ERROR DELETE TABLE");
+        window.location.reload();
       }
     } catch (error) {
       alert("GAGAL DELETE TABLE FRAME");
+      window.location.reload();
     }
   };
 
@@ -600,12 +618,18 @@ function FrameList() {
     } catch (error) {
       // alert("GAGAL CHECK BATT VOLT");
       console.log("GAGAL CHECK BATT VOLT");
-      setTimeout(
-        await function () {
-          checkBatteryVoltage();
-        },
-        1000
-      );
+      if (count_checkBatt < 11) {
+        count_checkBatt = count_checkBatt + 1;
+        setTimeout(
+          await function () {
+            checkBatteryVoltage();
+          },
+          1000
+        );
+      } else {
+        stop_msg = "PROGRAM BERHENTI, GAGAL CHECK BATT VOLT";
+        updateResultStatus();
+      }
     }
   };
 
@@ -621,6 +645,7 @@ function FrameList() {
         insertDefaultSetting();
       } else {
         alert(recpower_msg);
+        window.location.reload();
       }
     } catch (error) {
       alert("GAGAL TURN ON RECTI");
@@ -684,10 +709,30 @@ function FrameList() {
       if (statusResult_msg === "UPDATE_RESULT_STATUS_SUCCESS") {
         updateStatusTest();
       } else {
-        alert("GAGAL UPDATE RESULT TEST !!!");
+        if (count_resultStatus < 11) {
+          count_resultStatus = count_resultStatus + 1;
+          setTimeout(
+            await function () {
+              updateResultStatus();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL UPDATE RESULT TEST !!!");
+        }
       }
     } catch (error) {
-      alert("GAGAL UPDATE RESULT TEST");
+      if (count_resultStatus < 11) {
+        count_resultStatus = count_resultStatus + 1;
+        setTimeout(
+          await function () {
+            updateResultStatus();
+          },
+          1000
+        );
+      } else {
+        alert("GAGAL UPDATE RESULT TEST");
+      }
     }
   };
 
@@ -703,10 +748,30 @@ function FrameList() {
       if (statusTest_msg === "UPDATE_STATUS_TEST_SUCCESS") {
         updateStatusChecking();
       } else {
-        alert("GAGAL UPDATE STATUS TEST !!!");
+        if (count_statusTest < 11) {
+          count_statusTest = count_statusTest + 1;
+          setTimeout(
+            await function () {
+              updateStatusTest();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL UPDATE STATUS TEST !!!");
+        }
       }
     } catch (error) {
-      alert("GAGAL UPDATE STATUS TEST");
+      if (count_statusTest < 11) {
+        count_statusTest = count_statusTest + 1;
+        setTimeout(
+          await function () {
+            updateStatusTest();
+          },
+          1000
+        );
+      } else {
+        alert("GAGAL UPDATE STATUS TEST");
+      }
     }
   };
 
@@ -720,12 +785,63 @@ function FrameList() {
       const statusCheck_msg = await res.data.msg;
       console.log("statusCheck_msg : " + statusCheck_msg);
       if (statusCheck_msg === "UPDATE_STATUS_CHECKING_SUCCESS") {
-        powerOffRectifier();
+        chargingTime();
       } else {
-        alert("GAGAL UPDATE CHECK TEST !!!");
+        if (count_statusChecking < 11) {
+          count_statusChecking = count_statusChecking + 1;
+          setTimeout(
+            await function () {
+              updateStatusChecking();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL UPDATE CHECK TEST !!!");
+        }
       }
     } catch (error) {
-      alert("GAGAL UPDATE CHECK TEST");
+      if (count_statusChecking < 11) {
+        count_statusChecking = count_statusChecking + 1;
+        setTimeout(
+          await function () {
+            updateStatusChecking();
+          },
+          1000
+        );
+      } else {
+        alert("GAGAL UPDATE CHECK TEST");
+      }
+    }
+  };
+
+  const chargingTime = async () => {
+    console.log("chargingTime  ");
+    try {
+      const payload = {
+        frame_sn: frame_input,
+      };
+
+      const res = await instanceBackEnd.put("charging-time", payload);
+      const chargeTime_msg = await res.data.msg;
+      if (chargeTime_msg === "GET_LONG_BATTERY_CHARGING_TIME_SUCCESS") {
+        powerOffRectifier();
+      } else {
+        if (count_chargeTime < 11) {
+          count_chargeTime = count_chargeTime + 1;
+          setTimeout(
+            await function () {
+              chargingTime();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL UPDATE CHARGING TIME, PROGRAM BERAKHIR");
+          powerOffRectifier();
+        }
+      }
+    } catch (error) {
+      alert("GAGAL UPDATE CHARGING TIME, PROGRAM BERAKHIR");
+      powerOffRectifier();
     }
   };
 
@@ -740,9 +856,30 @@ function FrameList() {
       if (recpowerOff_msg === "POWER_MODULE_RECTIFIER_TURN_OFF") {
         endProgram();
       } else {
+        if (count_rectiOff < 11) {
+          count_rectiOff = count_rectiOff + 1;
+          setTimeout(
+            await function () {
+              powerOffRectifier();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL TURN OFF RECTI");
+        }
       }
     } catch (error) {
-      alert("GAGAL TURN OFF RECTI");
+      if (count_rectiOff < 11) {
+        count_rectiOff = count_rectiOff + 1;
+        setTimeout(
+          await function () {
+            powerOffRectifier();
+          },
+          1000
+        );
+      } else {
+        alert("GAGAL CATCH TURN OFF RECTI");
+      }
     }
   };
   const insertDefaultSetting = async () => {
@@ -787,19 +924,36 @@ function FrameList() {
       if (rec_code === 200 && rec_status === true) {
         setRectifierVoltage();
       } else {
+        if (count_rectiCurrent < 11) {
+          count_rectiCurrent = count_rectiCurrent + 1;
+          setTimeout(
+            await function () {
+              setRectifierCurrent();
+            },
+            1000
+          );
+        } else {
+          alert("GAGAL SET CURRENT RECTI");
+        }
       }
     } catch (error) {
-      alert("GAGAL SET CURRENT RECTI");
+      if (count_rectiCurrent < 11) {
+        count_rectiCurrent = count_rectiCurrent + 1;
+        setTimeout(
+          await function () {
+            setRectifierCurrent();
+          },
+          1000
+        );
+      } else {
+        alert("GAGAL CATCH SET CURRENT RECTI");
+      }
     }
   };
 
   const setRectifierVoltage = async () => {
     console.log("setRectifierVoltage");
     try {
-      // const payload = {
-      //   maxVoltage: 3600,
-      //   totalCell: 32,
-      // };
       const payload = {
         maxVoltage: max_voltage,
         minVoltage: min_voltage,
@@ -814,15 +968,26 @@ function FrameList() {
         getCms();
         // window.location.reload();
       } else {
+        if (count_rectiVoltage < 11) {
+          count_rectiVoltage = count_rectiVoltage + 1;
+          setRectifierVoltage();
+        } else {
+          alert("GAGAL SET RECTI VOLTAGE");
+        }
       }
     } catch (error) {
-      alert("GAGAL SET RECTI VOLTAGE");
+      if (count_rectiVoltage < 11) {
+        count_rectiVoltage = count_rectiVoltage + 1;
+        setRectifierVoltage();
+      } else {
+        alert("GAGAL CATCH SET RECTI VOLTAGE");
+      }
     }
   };
 
   //get rect data
   const rectifierData = async () => {
-    console.log("powerOffRectifier");
+    console.log("rectifierData");
     try {
       const res = await instanceBackEnd.get("rectifier-data");
       const recData_msg = await res.data.msg;
@@ -840,7 +1005,10 @@ function FrameList() {
         stop_msg = "PROGRAM DI HENTIKAN";
         updateResultStatus();
       } else {
-        alert("GAGAL GET RECTI DATA !!!");
+        // alert("GAGAL GET RECTI DATA !!!");
+        console.log("gagal get recti data");
+        stop_msg = "GAGAL GET RECTI DATA !!!";
+        updateResultStatus();
       }
     } catch (error) {
       // alert("GAGAL GET RECTI DATA");
@@ -879,6 +1047,9 @@ function FrameList() {
           1000
         );
       } else {
+        //forcestop
+        stop_msg = "PROGRAM DI HENTIKAN, GAGAL GET PERSEN";
+        updateResultStatus();
       }
     }
   };
@@ -947,7 +1118,20 @@ function FrameList() {
         updateResultStatus();
       }
     } catch (error) {
-      alert("GAGAL CHECK BATT VOLT");
+      // alert("GAGAL CHECK BATT VOLT");
+      console.log("GAGAL CHECK BATT VOLT 2");
+      if (count_checkBatt < 11) {
+        count_checkBatt = count_checkBatt + 1;
+        setTimeout(
+          await function () {
+            checkBatt();
+          },
+          1000
+        );
+      } else {
+        stop_msg = "PROGRAM BERHENTI, GAGAL CHECK BATT VOLT 2";
+        updateResultStatus();
+      }
     }
   };
 
