@@ -39,6 +39,8 @@ let running_program = "true";
 let stop_msg;
 let test_count;
 let reCharge = false;
+let date_start;
+let date_end;
 
 function FrameList() {
   const [showPassword1, modalPassword1] = useState(false);
@@ -352,7 +354,7 @@ function FrameList() {
 
   async function save_frame() {
     element_frame.setAttribute("disabled", "");
-
+    date_start = Math.floor(new Date().getTime() / 1000.0);
     console.log(inputarr, " objek store di array ");
     const panjang_array = inputarr.length;
     console.log("panjang aray = " + panjang_array);
@@ -816,9 +818,12 @@ function FrameList() {
 
   const chargingTime = async () => {
     console.log("chargingTime  ");
+    date_end = Math.floor(new Date().getTime() / 1000.0);
     try {
       const payload = {
         frame_sn: frame_input,
+        date_start: date_start,
+        date_end: date_end,
       };
 
       const res = await instanceBackEnd.post("charging-time", payload);
