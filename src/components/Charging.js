@@ -42,6 +42,26 @@ let reCharge = false;
 let date_start;
 let date_end;
 
+function padTo2Digits(num) {
+  return num.toString().padStart(2, "0");
+}
+
+function formatDate(date) {
+  return (
+    [
+      date.getFullYear(),
+      padTo2Digits(date.getMonth() + 1),
+      padTo2Digits(date.getDate()),
+    ].join("-") +
+    " " +
+    [
+      padTo2Digits(date.getHours()),
+      padTo2Digits(date.getMinutes()),
+      padTo2Digits(date.getSeconds()),
+    ].join(":")
+  );
+}
+
 function FrameList() {
   const [showPassword1, modalPassword1] = useState(false);
   const handleClose = () => modalPassword1(false);
@@ -354,7 +374,8 @@ function FrameList() {
 
   async function save_frame() {
     element_frame.setAttribute("disabled", "");
-    date_start = Math.floor(new Date().getTime() / 1000.0);
+    date_start = formatDate(new Date());
+
     console.log(inputarr, " objek store di array ");
     const panjang_array = inputarr.length;
     console.log("panjang aray = " + panjang_array);
@@ -818,7 +839,7 @@ function FrameList() {
 
   const chargingTime = async () => {
     console.log("chargingTime  ");
-    date_end = Math.floor(new Date().getTime() / 1000.0);
+    date_end = formatDate(new Date());
     try {
       const payload = {
         frame_sn: frame_input,
