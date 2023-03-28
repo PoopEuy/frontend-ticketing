@@ -1315,6 +1315,7 @@ function FrameList() {
       const status_checking = await res.data.data.status_checking;
 
       const data_result = await res.data.data.result;
+      const duration = await res.data.data.duration_charging;
       const root = ReactDOMClient.createRoot(
         document.getElementById("result_root")
       );
@@ -1342,6 +1343,19 @@ function FrameList() {
                 {data_result}
               </span>
             </h1>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              DURATION :
+              <span
+                style={{
+                  textAlign: "center",
+                  fontSize: "25px",
+                  color: "black",
+                }}
+              >
+                {" "}
+                {duration}
+              </span>
+            </h1>
           </div>
         );
         root.render(element);
@@ -1363,6 +1377,19 @@ function FrameList() {
               >
                 {" "}
                 {data_result}
+              </span>
+            </h1>
+            <h1 style={{ textAlign: "center", fontSize: "30px" }}>
+              DURATION :
+              <span
+                style={{
+                  textAlign: "center",
+                  fontSize: "25px",
+                  color: "black",
+                }}
+              >
+                {" "}
+                {duration}
               </span>
             </h1>
           </div>
