@@ -1,36 +1,36 @@
 import React from "react";
 
 function FrameTableList(props) {
-  const master_frame = props.message;
+  const master_sites = props.message;
+  console.log("master sites : " + master_sites);
+
   return (
     <table className="table is-striped is-fullwidth">
       <thead>
         <tr>
           <th>No</th>
-          <th>Serial Frame</th>
-          <th>Status Test</th>
-          <th>Result Test</th>
-          <th>Test Time</th>
+          <th>NOJS</th>
+          <th>Sites</th>
+
           {/* <th>Actions</th> */}
         </tr>
       </thead>
       <tbody>
-        {master_frame.map((masterFrame, index) => (
-          <tr key={masterFrame.id}>
+        {master_sites.map((data, index) => (
+          <tr key={data.nojs}>
             <td>{index + 1}</td>
-            <td>{masterFrame.frame_sn}</td>
-            <td>{String(masterFrame.status_test)}</td>
-            <td>{String(masterFrame.result)}</td>
-            <td>{masterFrame.duration_charging}</td>
+            <td>{data.nojs}</td>
+            <td>{String(data.site)}</td>
+
             {/* <td>
                   <Link
-                    to={`edit/${masterFrame.id}`}
+                    to={`edit/${masterSites.id}`}
                     className="button is-small is-info"
                   >
                     Edit
                   </Link>
                   <button
-                    onClick={() => deleteFrame(masterFrame.id)}
+                    onClick={() => deleteFrame(masterSites.id)}
                     className="button is-small is-danger"
                   >
                     Delete
