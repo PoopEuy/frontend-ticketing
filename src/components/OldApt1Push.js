@@ -8,7 +8,7 @@ import NavbarMenu from "./child/NavbarMenu.js";
 // import { Link } from "react-router-dom";
 // import FrameTableList from "./child/FrameTableList.js";
 
-const MasterFrameList = () => {
+const OldApt1Push = () => {
   const [masterSites, setMasterSite] = useState([]);
   const [files, setFiles] = useState([]);
   const [popupSite, setPopupSite] = useState([]);
@@ -207,4 +207,4 @@ const MasterFrameList = () => {
   );
 };
 
-export default MasterFrameList;
+export default OldApt1Push;
