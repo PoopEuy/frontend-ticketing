@@ -1,17 +1,20 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import OldApt1Push from "./components/OldApt1Push";
-import CreateDataAptNew from "./components/CreateDataAptNew";
-import CreateDataAptOld from "./components/CreateDataAptOld";
 
-import "bootstrap/dist/css/bootstrap.min.css";
+// import Home from "./components/home";
+import ListPage from "./components/ListPage";
+// import TableTest from "./components/child/TableTest";
+import ResponPage from "./components/ResponsePage";
+
+// import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<OldApt1Push />} />
-        <Route path="/createDataAptNew" element={<CreateDataAptNew />} />
-        <Route path="/createDataAptOld" element={<CreateDataAptOld />} />
+        {/* <Route path="/home" element={<Home />} /> */}
+        <Route path="/" element={<ListPage />} />
+        <Route path="/ListPage" element={<ListPage />} />
+        <Route path="/ResponPage" element={<ResponPage />} />
       </Routes>
       {/* <MasterFrameList /> */}
     </BrowserRouter>

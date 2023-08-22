@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from "react";
+import { instanceBackEnd } from "../../api/axios.js";
+
+// import Container from "react-bootstrap/Container";
+// import Nav from "react-bootstrap/Nav";
+// import Navbar from "react-bootstrap/Navbar";
+// import NavDropdown from "react-bootstrap/NavDropdown";
+
+function TableSite() {
+  // const [m_frames, setticketData] = useState([]);
+  const [ticketDatas, setTicketData] = useState([]);
+
+  useEffect(() => {
+    getTicketData();
+  }, []);
+  console.log("instanceBackEnd = " + instanceBackEnd);
+  const getTicketData = async () => {
+    const response = await instanceBackEnd.get("getAllTicket");
+    console.log("data : " + response.data.data);
+    setTicketData(response.data.data);
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-block">
+          <div className="row align-items-center">
+            <div className="col-md-8">
+              <div className="page-header-title">
+                <h5 className="m-b-10">Bootstrap Basic Tables</h5>
+                <p className="m-b-0">
+                  Lorem Ipsum is simply dummy text of the printing
+                </p>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <ul className="breadcrumb-title">
+                <li className="breadcrumb-item">
+                  <a href="index.html">
+                    {" "}
+                    <i className="fa fa-home" />{" "}
+                  </a>
+                </li>
+                <li className="breadcrumb-item">
+                  <a href="#!">Bootstrap Tables</a>
+                </li>
+                <li className="breadcrumb-item">
+                  <a href="#!">Basic Tables</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Page-header end */}
+      <div className="pcoded-inner-content">
+        {/* Main-body start */}
+        <div className="main-body">
+          <div className="page-wrapper">
+            {/* Page-body start */}
+            <div className="page-body">
+              {/* Basic table card start */}
+              <div className="card">
+                <div className="card-header">
+                  <h5>Basic Table</h5>
+                  <span>
+                    use class <code>table</code> inside table element
+                  </span>
+                  <div className="card-header-right">
+                    <ul className="list-unstyled card-option">
+                      <li>
+                        <i className="fa fa fa-wrench open-card-option" />
+                      </li>
+                      <li>
+                        <i className="fa fa-window-maximize full-card" />
+                      </li>
+                      <li>
+                        <i className="fa fa-minus minimize-card" />
+                      </li>
+                      <li>
+                        <i className="fa fa-refresh reload-card" />
+                      </li>
+                      <li>
+                        <i className="fa fa-trash close-card" />
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="card-block table-border-style">
+                  <div className="table-responsive">
+                    <table
+                      id="example"
+                      className="table table-striped table-bordered"
+                    >
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th>Ticket Code</th>
+                          <th>Time</th>
+                          <th>Site Name</th>
+                          <th>Site Status</th>
+                          <th>Status Ticket</th>
+                          <th>Down Total</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ticketDatas.map((ticketData, index) => (
+                          <tr key={ticketData.id}>
+                            <td>{index + 1}</td>
+                            {/* <td>{ticketData.kd_site}</td> */}
+                            <td>{ticketData.ticket_code}</td>
+                            {/* <td>{ticketData.ip_adrs}</td> */}
+                            <td>{String(ticketData.ts)}</td>
+                            <td>{String(ticketData.site_name)}</td>
+                            <td>{String(ticketData.status_site)}</td>
+                            <td>{String(ticketData.status_ticket)}</td>
+                            <td>{String(ticketData.counter)}</td>
+                            <td>
+                              <button className="button is-small is-danger">
+                                Update
+                              </button>
+                            </td>
+                            {/* <td>
+                  <Link
+                    to={`edit/${ticketData.id}`}
+                    className="button is-small is-info"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => deleteFrame(ticketData.id)}
+                    className="button is-small is-danger"
+                  >
+                    Delete
+                  </button>
+                </td> */}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Page-body end */}
+          </div>
+        </div>
+        {/* Main-body end */}
+        <div id="styleSelector"></div>
+      </div>
+    </div>
+  );
+}
+
+export default TableSite;
