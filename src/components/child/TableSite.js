@@ -28,7 +28,7 @@ function TableSite() {
   }, []);
 
   const getTicketData = async () => {
-    const response = await instanceBackEnd.get("getOpenTicket");
+    const response = await instanceBackEnd.get("getAllTicket");
     console.log("dataTicketRes : " + response.data.data);
     setTicketData(response.data.data);
 

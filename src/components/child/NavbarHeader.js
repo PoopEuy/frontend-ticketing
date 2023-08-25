@@ -9,13 +9,19 @@ function NavbarHeader() {
     <nav className="navbar header-navbar pcoded-header">
       <div className="navbar-wrapper">
         <div className="navbar-logo">
-          <a
+          {/* <a
             className="mobile-menu waves-effect waves-light"
             id="mobile-collapse"
-            href="#!"
           >
             <i className="ti-menu" />
-          </a>
+          </a> */}
+          <span
+            className="mobile-menu waves-effect waves-light span-header-icon"
+            id="mobile-collapse"
+          >
+            {" "}
+            <i className="ti-menu" />
+          </span>
           <div className="mobile-search waves-effect waves-light">
             <div className="header-search">
               <div className="main-search morphsearch-search">

@@ -91,13 +91,26 @@ function NavbarSamping() {
             <a href="/ListPage" className="waves-effect waves-dark">
               <span className="pcoded-micon">
                 <i className="ti-layers" />
-                <b>FC</b>
               </span>
               <span
                 className="pcoded-mtext"
                 data-i18n="nav.form-components.main"
               >
                 Ticket List
+              </span>
+              <span className="pcoded-mcaret" />
+            </a>
+          </li>
+          <li>
+            <a href="/CreateTicket" className="waves-effect waves-dark">
+              <span className="pcoded-micon">
+                <i className="ti-layers" />
+              </span>
+              <span
+                className="pcoded-mtext"
+                data-i18n="nav.form-components.main"
+              >
+                Create Ticket
               </span>
               <span className="pcoded-mcaret" />
             </a>

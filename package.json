@@ -23,6 +23,7 @@
     "react-loading-text": "^0.5.3",
     "react-router-dom": "^6.4.5",
     "react-scripts": "5.0.1",
+    "react-select": "^5.7.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

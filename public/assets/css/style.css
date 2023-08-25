@@ -16462,3 +16462,7 @@ body.dark {
 .button-right {
   float: inline-end; 
 }
+
+.span-header-icon{
+  color : #fff;
+}
