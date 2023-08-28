@@ -8,12 +8,21 @@ import makeAnimated from "react-select/animated";
 function CreateTicketChild() {
   const [masterSites, setMasterSite] = useState([]);
   const [problemSelect, setProblem] = useState([]);
-  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  //inpun state
+  const [siteName, setSiteName] = useState([]);
+  const [selectedProblem, setSelectedProblem] = useState([]);
+  const [siteStatus, setSiteStatus] = useState([]);
 
   useEffect(() => {
     getMasterSites();
     getProblemOptions();
   }, []);
+
+  const selectStatus = [
+    { value: "warning", label: "warning" },
+    { value: "down", label: "down" },
+  ];
 
   const getMasterSites = async () => {
     try {
@@ -36,17 +45,59 @@ function CreateTicketChild() {
   };
 
   const handleSelectChange = (selectedValues) => {
-    setSelectedOptions(selectedValues);
-    console.log("selectProblem: " + selectedValues);
+    const banyakProblem = selectedValues.length;
+    const indexProblem = banyakProblem - 1;
+    const problemId = selectedValues[indexProblem].value;
+    const problemLabel = selectedValues[indexProblem].label;
+    setSelectedProblem(problemId);
+    console.log("selectProblem: " + " " + problemId + " " + problemLabel);
   };
 
   const handleSelectSite = (selectedValues) => {
     console.log("SiteSelect");
     console.log("selectedSite: " + selectedValues.value);
+    setSiteName(selectedValues.value);
   };
+  const handleSelectStatus = (selectedValues) => {
+    console.log("StatusSelect");
+    console.log("StatusSelect: " + selectedValues.value);
+    setSiteStatus(selectedValues.value);
+  };
+
   const handleClick = () => {
-    console.log("click");
+    createTicket();
   };
+
+  async function createTicket() {
+    const responseText = document.getElementById("responseText").value;
+    console.log(
+      "click : " +
+        siteName +
+        " " +
+        selectedProblem +
+        "" +
+        siteStatus +
+        " " +
+        responseText
+    );
+
+    const payload = {
+      site_name: siteName,
+      status_site: siteStatus,
+      status_ticket: "open",
+      counter: 1,
+      problem_id: selectedProblem,
+    };
+    const resCreateTicket = await instanceBackEnd.post(
+      "createTicketAuto1",
+      payload
+    );
+
+    try {
+    } catch (error) {
+      console.log("error createTicket!!! ");
+    }
+  }
   return (
     <div>
       <div className="page-header">
@@ -55,7 +106,7 @@ function CreateTicketChild() {
             <div className="col-md-8">
               <div className="page-header-title">
                 <h5 className="m-b-10">Site Trouble Ticket</h5>
-                <p className="m-b-0">Ticket List</p>
+                <p className="m-b-0">Create Ticket</p>
               </div>
             </div>
             <div className="col-md-4">
@@ -67,11 +118,8 @@ function CreateTicketChild() {
                   </a>
                 </li>
                 <li className="breadcrumb-item">
-                  <a href="#!">Ticket List</a>
+                  <a href="#!">Create Ticket</a>
                 </li>
-                {/* <li className="breadcrumb-item">
-                  <a href="#!">Basic Tables</a>
-                </li> */}
               </ul>
             </div>
           </div>
@@ -87,7 +135,7 @@ function CreateTicketChild() {
                   {/* Basic Form Inputs card start */}
                   <div className="card">
                     <div className="card-header">
-                      <h5>Response Form</h5>
+                      <h5>Ticket Form</h5>
                       <div className="card-header-right">
                         <ul className="list-unstyled card-option">
                           <li>
@@ -109,7 +157,7 @@ function CreateTicketChild() {
                       </div>
                     </div>
                     <div className="card-block">
-                      <h4 className="sub-title">Response</h4>
+                      <h4 className="sub-title">Create Ticket</h4>
                       <form>
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
@@ -129,12 +177,13 @@ function CreateTicketChild() {
 
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
-                            Problem1
+                            Problem
                           </label>
                           <div className="col-sm-10">
                             <Select
+                              id="siteProblemSelect"
                               options={problemSelect.map((option) => ({
-                                value: option.problem,
+                                value: option.problem_id,
                                 label: option.problem,
                               }))}
                               isMulti
@@ -150,47 +199,15 @@ function CreateTicketChild() {
                           </div>
                         </div>
 
-                        {/* <div className="form-group row">
-                          <label className="col-sm-2 col-form-label">
-                            Problem
-                          </label>
-                          <div className="col-sm-10">
-                            <select
-                              name="select"
-                              className="form-control"
-                              multiple
-                              onChange={handleSelectChange}
-                            >
-                              <option value="">Select Site</option>
-                              {options.map((option) => (
-                                <option
-                                  key={option.problem_id}
-                                  value={option.problem}
-                                >
-                                  {option.problem}
-                                </option>
-                              ))}
-                            </select>
-                            <div>
-                              <ul>
-                                {selectedOptions.map((value) => (
-                                  <li key={value}>{value}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div> */}
-
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Site Status
                           </label>
                           <div className="col-sm-10">
-                            <Select name="select">
-                              <option value="">Select One Value Only</option>
-                              <option value="warning">Warning</option>
-                              <option value="down">Down</option>
-                            </Select>
+                            <Select
+                              options={selectStatus}
+                              onChange={handleSelectStatus}
+                            />
                           </div>
                         </div>
 
