@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { instanceBackEnd } from "../../api/axios";
-import { useLocation } from "react-router-dom";
 import { Modal, Button } from "react-bootstrap";
 import Select from "react-select";
-import makeAnimated from "react-select/animated";
+import { useNavigate } from "react-router-dom";
 
 function CreateTicketChild() {
   const [masterSites, setMasterSite] = useState([]);
   const [problemSelect, setProblem] = useState([]);
 
-  //inpun state
+  //input state
   const [siteName, setSiteName] = useState([]);
   const [selectedProblem, setSelectedProblem] = useState([]);
   const [siteStatus, setSiteStatus] = useState([]);
+
+  //detailsTicke State
+  const [detailsTicket, setDetailsTicket] = useState([]);
+
+  //Openpopup
+  const [showTicketOpen, openTicketPopup] = useState(false);
+  const [popupResult, setPopupResult] = useState([]);
+  const [showCreateTicket, createTicketPopup] = useState(false);
+
+  //closePopUp
+  const handleCloseTicket = () => openTicketPopup(false);
+  const handleCloseCreate = () => createTicketPopup(false);
+
+  //navigate
+  let navigate = useNavigate();
 
   useEffect(() => {
     getMasterSites();
@@ -45,12 +59,14 @@ function CreateTicketChild() {
   };
 
   const handleSelectChange = (selectedValues) => {
-    const banyakProblem = selectedValues.length;
-    const indexProblem = banyakProblem - 1;
-    const problemId = selectedValues[indexProblem].value;
-    const problemLabel = selectedValues[indexProblem].label;
-    setSelectedProblem(problemId);
-    console.log("selectProblem: " + " " + problemId + " " + problemLabel);
+    // const banyakProblem = selectedValues.length;
+    // const indexProblem = banyakProblem - 1;
+    // const problemId = selectedValues[indexProblem].value;
+    // const problemLabel = selectedValues[indexProblem].label;
+    // setSelectedProblem(problemId);
+    // console.log("selectProblem: " + " " + problemId + " " + problemLabel);
+
+    setSelectedProblem(selectedValues);
   };
 
   const handleSelectSite = (selectedValues) => {
@@ -58,42 +74,98 @@ function CreateTicketChild() {
     console.log("selectedSite: " + selectedValues.value);
     setSiteName(selectedValues.value);
   };
+
   const handleSelectStatus = (selectedValues) => {
     console.log("StatusSelect");
     console.log("StatusSelect: " + selectedValues.value);
     setSiteStatus(selectedValues.value);
   };
 
-  const handleClick = () => {
-    createTicket();
+  const goToDetails = () => {
+    const dataTikcet = detailsTicket.data;
+    navigate("/ResponPage", { state: { data: dataTikcet } });
+    navigate(0);
   };
 
-  async function createTicket() {
+  const handleClick = () => {
+    checkTicket(siteName);
+  };
+
+  const checkTicket = async (site_name) => {
+    try {
+      const payload = {
+        site_name: site_name,
+      };
+      const resTicket = await instanceBackEnd.post("checkTicket", payload);
+      const counter = await resTicket.data.counter;
+      const ticketMsg = await resTicket.data.message;
+
+      setDetailsTicket(resTicket.data);
+      console.log("counter : " + counter);
+      if (ticketMsg === "no_ticket") {
+        console.log("ticket_belum_ada, create_ticket_baru " + site_name);
+
+        createTicket(counter);
+      }
+
+      if (ticketMsg === "sukses") {
+        const ticket_status = await resTicket.data.data.status_ticket;
+        if (ticket_status === "closed") {
+          console.log("ticket_sudah_ada, sudah_close, create_ticket_baru");
+
+          createTicket(counter);
+        }
+
+        if (ticket_status === "open") {
+          const ress_messages = "Harap Selesaikan Tiket Sebelumnya";
+          setPopupResult(ress_messages);
+
+          console.log("ticket_sudah_ada, status_open - " + site_name);
+          //kirim pesan langsung
+          openTicketPopup(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching problem options:", error);
+    }
+  };
+
+  async function createTicket(counter) {
     const responseText = document.getElementById("responseText").value;
+    var arrProblemId = [];
+
+    selectedProblem.forEach(function (v) {
+      const problemId = v.value;
+
+      arrProblemId.push(problemId);
+      console.log("arrProblemId : " + arrProblemId);
+    });
     console.log(
       "click : " +
         siteName +
         " " +
-        selectedProblem +
+        arrProblemId +
         "" +
         siteStatus +
         " " +
         responseText
     );
 
-    const payload = {
-      site_name: siteName,
-      status_site: siteStatus,
-      status_ticket: "open",
-      counter: 1,
-      problem_id: selectedProblem,
-    };
-    const resCreateTicket = await instanceBackEnd.post(
-      "createTicketAuto1",
-      payload
-    );
-
     try {
+      const payload = {
+        site_name: siteName,
+        status_site: siteStatus,
+        status_ticket: "open",
+        counter: counter,
+        problem_id: arrProblemId,
+        response: responseText,
+      };
+      const resCreateTicket = await instanceBackEnd.post(
+        "createTicketManual",
+        payload
+      );
+
+      createTicketPopup(true);
     } catch (error) {
       console.log("error createTicket!!! ");
     }
@@ -251,6 +323,36 @@ function CreateTicketChild() {
         </div>
 
         {/* modal popup */}
+        <Modal show={showTicketOpen} onHide={handleCloseTicket}>
+          {/* <Modal.Header closeButton></Modal.Header> */}
+          <Modal.Body style={{ textAlign: "center" }}>
+            <h5>
+              <b>{popupResult}</b>
+            </h5>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={handleCloseTicket}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={goToDetails}>
+              Details Ticket
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showCreateTicket} onHide={handleCloseCreate}>
+          {/* <Modal.Header closeButton></Modal.Header> */}
+          <Modal.Body style={{ textAlign: "center" }}>
+            <h5>
+              <b>Create Ticket Succes</b>
+            </h5>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={handleCloseCreate}>
+              Ok
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );
