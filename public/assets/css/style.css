@@ -16466,3 +16466,7 @@ body.dark {
 .span-header-icon{
   color : #fff;
 }
+
+.hide-ticket-list{
+  display: none;
+}
