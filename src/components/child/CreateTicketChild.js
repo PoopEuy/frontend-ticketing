@@ -97,8 +97,9 @@ function CreateTicketChild() {
         site_name: site_name,
       };
       const resTicket = await instanceBackEnd.post("checkTicket", payload);
-      const counter = await resTicket.data.counter;
+      var counter = await resTicket.data.counter;
       const ticketMsg = await resTicket.data.message;
+      counter = counter + 1;
 
       setDetailsTicket(resTicket.data);
       console.log("counter : " + counter);
@@ -140,13 +141,15 @@ function CreateTicketChild() {
       arrProblemId.push(problemId);
       console.log("arrProblemId : " + arrProblemId);
     });
+
     console.log(
-      "click : " +
+      siteStatus +
+        "click : " +
         siteName +
         " " +
-        arrProblemId +
-        "" +
         siteStatus +
+        "" +
+        arrProblemId +
         " " +
         responseText
     );
@@ -164,6 +167,7 @@ function CreateTicketChild() {
         "createTicketManual",
         payload
       );
+      console.log(" resCreateTicket : " + resCreateTicket);
 
       createTicketPopup(true);
     } catch (error) {

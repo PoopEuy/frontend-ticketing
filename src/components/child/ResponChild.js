@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { instanceBackEnd } from "../../api/axios";
 import { useLocation } from "react-router-dom";
-import { Modal, Button } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
+import { Button, Col, Row, Table } from "react-bootstrap";
+import {
+  DatatableWrapper,
+  Filter,
+  Pagination,
+  PaginationOptions,
+  TableBody,
+  TableColumnType,
+  TableHeader,
+} from "react-bs-datatable";
 
 function ResponChild() {
   const { state } = useLocation();
@@ -15,20 +25,37 @@ function ResponChild() {
   const [siteStatus, setSiteStatus] = useState([]);
   const [ticketStatus, setTicketStatus] = useState([]);
   const [totalTicket, setTotalTicket] = useState([]);
-  const [responseText, setResponseText] = useState([]);
+  const [resHistory, setResHistory] = useState([]);
+
   // const [responseAt, setResponseAt] = useState([]);
+  const [isDivVisible, setDivVisibility] = useState(false);
 
   //popupstatws
   const [showResult, setShowResult] = useState(false);
   const [popupResult, setPopupResult] = useState([]);
-
   const handleCloseResult = () => setShowResult(false);
+
+  //header table history
+  const STORY_RESPONSE_HISTORY: TableColumnType<ArrayElementType>[] = [
+    {
+      prop: "text",
+      title: "Response",
+      isFilterable: true,
+      isSortable: true,
+    },
+    {
+      prop: "time",
+      title: "Date",
+      isSortable: true,
+    },
+  ];
 
   useEffect(() => {
     //defined processForm
     const processForm = async () => {
       const newProblemList = [];
       const newSolutionList = [];
+
       const problemCode = data.problem_id;
       const ticket_code = data.ticket_code;
       const timeCreated = data.ts;
@@ -36,7 +63,7 @@ function ResponChild() {
       const status_site = data.status_site;
       const status_ticket = data.status_ticket;
       const counter = data.counter;
-      const responseText = data.response;
+      const resHistory = data.response;
       // const responseAt = data.response_at;
 
       setTicketCode(ticket_code);
@@ -45,9 +72,24 @@ function ResponChild() {
       setSiteStatus(status_site);
 
       setTotalTicket(counter);
-      setResponseText(responseText);
-      // setResponseAt(responseAt);
-      console.log("status_ticket1 : " + status_ticket);
+
+      if (resHistory === null) {
+        console.log("resNUll");
+        var arrRessponse = [];
+
+        const addResponse = {
+          text: "No Response Yet",
+          time: "No Response Yet",
+        };
+
+        arrRessponse.push(addResponse);
+        setResHistory(arrRessponse);
+      } else {
+        console.log("res tidak NUll");
+        console.log("resHistory : " + resHistory + " " + resHistory.length);
+        setResHistory(resHistory);
+      }
+
       // console.log("responseAt : " + responseAt);
 
       if (status_ticket === "open") {
@@ -58,6 +100,7 @@ function ResponChild() {
         document.getElementById("closeTicket").checked = true;
         setTicketStatus(status_ticket);
       }
+
       for (let i = 0; i < problemCode.length; i++) {
         // ... other code ...
         const problemId = problemCode[i];
@@ -132,6 +175,7 @@ function ResponChild() {
       ticket_code: ticketCode,
       status_ticket: ticketStatus,
       responseTicket: responseText,
+      arr_response: resHistory,
       // responseAt: responseAt,
     };
     const resUpdate = await instanceBackEnd.post(
@@ -159,9 +203,14 @@ function ResponChild() {
     const status_ticket = "open";
     setTicketStatus(status_ticket);
   };
+
   const closeCheckBox = () => {
     const status_ticket = "closed";
     setTicketStatus(status_ticket);
+  };
+
+  const toggleDiv = () => {
+    setDivVisibility(!isDivVisible);
   };
 
   return (
@@ -229,6 +278,7 @@ function ResponChild() {
                         </ul>
                       </div>
                     </div>
+
                     <div className="card-block">
                       <h4 className="sub-title">Response</h4>
                       <form>
@@ -263,6 +313,7 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Site Name
@@ -278,6 +329,7 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Site Status
@@ -293,26 +345,12 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Ticket Status
                           </label>
                           <div className="col-sm-10">
-                            {/* <div className="col-xs-2">
-                      <div className="checkbox-inline">
-                        <label className="checkbox-inline">
-                          <input id="openBox" type="checkbox" defaultValue />
-                          <span className="ml-1">Open</span>
-                        </label>
-                      </div>
-
-                      <div className="checkbox-inline">
-                        <label className="checkbox-inline">
-                          <input id="openBox" type="checkbox" defaultValue />
-                          <span className="ml-1">Close</span>
-                        </label>
-                      </div>
-                    </div> */}
                             <label className="btn btn-secondary">
                               <input
                                 type="radio"
@@ -353,6 +391,7 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Problem
@@ -369,6 +408,7 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Solution
@@ -385,6 +425,7 @@ function ResponChild() {
                             />
                           </div>
                         </div>
+
                         <div className="form-group row">
                           <label className="col-sm-2 col-form-label">
                             Response
@@ -396,7 +437,6 @@ function ResponChild() {
                               cols={5}
                               className="form-control"
                               // placeholder="Default textarea"
-                              defaultValue={responseText}
                             />
                           </div>
                         </div>
@@ -417,6 +457,91 @@ function ResponChild() {
                           </button>
                         </div>
                       </form>
+                    </div>
+                    <div className="card-block">
+                      {" "}
+                      <h4 className="sub-title">Response History</h4>
+                      <div className="form-group row">
+                        <div className="col-sm-2 col-form-label">
+                          <button
+                            type="button"
+                            className="btn btn-primary waves-effect waves-light button-center"
+                            id="buttonHistory"
+                            data-container="body"
+                            data-toggle="popover"
+                            data-placement="bottom"
+                            data-content
+                            data-original-title="Primary color states"
+                            onClick={toggleDiv}
+                          >
+                            {isDivVisible ? "Hide" : "Show"} Response History
+                          </button>
+                        </div>
+
+                        <div className="col-sm-10">
+                          {isDivVisible && (
+                            <div>
+                              <div className="table-responsive">
+                                {" "}
+                                {/* Added a container around the content */}
+                                <DatatableWrapper
+                                  body={resHistory}
+                                  headers={STORY_RESPONSE_HISTORY}
+                                  paginationOptionsProps={{
+                                    initialState: {
+                                      rowsPerPage: 10,
+                                      options: [5, 10, 15, 20],
+                                    },
+                                  }}
+                                >
+                                  <Row className="mb-4 p-2">
+                                    <Col
+                                      xs={12}
+                                      lg={4}
+                                      className="d-flex flex-col justify-content-end align-items-end"
+                                    >
+                                      <Filter />
+                                    </Col>
+                                    <Col
+                                      xs={12}
+                                      sm={6}
+                                      lg={4}
+                                      className="d-flex flex-col justify-content-lg-center align-items-center justify-content-sm-start mb-2 mb-sm-0"
+                                    >
+                                      <PaginationOptions />
+                                    </Col>
+                                  </Row>
+                                  <Table>
+                                    <TableHeader />
+                                    <TableBody />
+                                  </Table>
+                                  <Row className="mb-4 p-2">
+                                    <Col
+                                      xs={12}
+                                      sm={6}
+                                      lg={6}
+                                      className="d-flex flex-col"
+                                    >
+                                      <Pagination paginationRange={4} />
+                                    </Col>
+                                  </Row>
+                                </DatatableWrapper>
+                              </div>
+                            </div>
+                          )}
+                          {/* <textarea
+                              id="responseHistory"
+                              rows={5}
+                              cols={5}
+                              className="form-control"
+                              // defaultValue={responseText}
+                              readOnly
+                              value={
+                                textReponse + " " + timeResponse.join("\n")
+                              }
+                            /> */}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

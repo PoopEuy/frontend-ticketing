@@ -89,10 +89,10 @@ function TableSite() {
       prop: "problem_id",
       title: "Problem Code",
     },
-    {
-      prop: "response",
-      title: "Response",
-    },
+    // {
+    //   prop: "response",
+    //   title: "Response",
+    // },
     {
       prop: "button",
       title: "Action", // Added a title for the button column
@@ -155,10 +155,10 @@ function TableSite() {
       prop: "problem_id",
       title: "Problem Code",
     },
-    {
-      prop: "response",
-      title: "Response",
-    },
+    // {
+    //   prop: "response",
+    //   title: "Response",
+    // },
     {
       prop: "provinsi",
       title: "Provinsi",
@@ -225,10 +225,10 @@ function TableSite() {
       prop: "problem_id",
       title: "Problem Code",
     },
-    {
-      prop: "response",
-      title: "Response",
-    },
+    // {
+    //   prop: "response",
+    //   title: "Response",
+    // },
     {
       prop: "provinsi",
       title: "Provinsi",
@@ -303,19 +303,19 @@ function TableSite() {
                   <div className="card-header-right">
                     <ul className="list-unstyled card-option">
                       <li>
-                        <i className="fa fa fa-wrench open-card-option" />
+                        <i className="fa fa fa-wrench open-card-option icon-list-size" />
                       </li>
                       {/* <li>
                         <i className="fa fa-window-maximize full-card" />
                       </li> */}
                       <li>
-                        <i className="fa fa-plus minimize-card" />
+                        <i className="fa fa-plus minimize-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-refresh reload-card" />
+                        <i className="fa fa-refresh reload-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-trash close-card" />
+                        <i className="fa fa-trash close-card icon-list-size" />
                       </li>
                     </ul>
                   </div>
@@ -384,19 +384,19 @@ function TableSite() {
                   <div className="card-header-right">
                     <ul className="list-unstyled card-option">
                       <li>
-                        <i className="fa fa fa-wrench open-card-option" />
+                        <i className="fa fa fa-wrench open-card-option icon-list-size" />
                       </li>
                       {/* <li>
                         <i className="fa fa-window-maximize full-card" />
                       </li> */}
                       <li>
-                        <i className="fa fa-plus minimize-card" />
+                        <i className="fa fa-plus minimize-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-refresh reload-card" />
+                        <i className="fa fa-refresh reload-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-trash close-card" />
+                        <i className="fa fa-trash close-card icon-list-size" />
                       </li>
                     </ul>
                   </div>
@@ -465,19 +465,19 @@ function TableSite() {
                   <div className="card-header-right">
                     <ul className="list-unstyled card-option">
                       <li>
-                        <i className="fa fa fa-wrench open-card-option" />
+                        <i className="fa fa fa-wrench open-card-option icon-list-size" />
                       </li>
                       {/* <li>
                         <i className="fa fa-window-maximize full-card" />
                       </li> */}
                       <li>
-                        <i className="fa fa-plus minimize-card" />
+                        <i className="fa fa-plus minimize-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-refresh reload-card" />
+                        <i className="fa fa-refresh reload-card icon-list-size" />
                       </li>
                       <li>
-                        <i className="fa fa-trash close-card" />
+                        <i className="fa fa-trash close-card icon-list-size" />
                       </li>
                     </ul>
                   </div>
