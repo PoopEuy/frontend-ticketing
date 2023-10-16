@@ -77,12 +77,12 @@ function SlaGraphChild() {
                     </div>
                     <div className="card-block">
                       <iframe
-                        src="http://192.168.2.89:3001/public/dashboard/98a900a8-da79-488e-a2bb-78473010d404"
+                        src="http://meta.sundaya.local/public/dashboard/b19163fc-5d5b-41cd-b699-1a6ee65669fb?search_by_date=past1months"
+                        title="SLA Dashboard"
                         frameBorder="0"
                         width="100%"
                         height="1000px"
-                        allowTransparency
-                        title="SLA Dashboard"
+                        allowTransparency={true}
                       />
                     </div>
                   </div>
